@@ -10,7 +10,7 @@ void get_compass_data(float target_lat, float target_lon) {
   if (hmc_flag) {
     sensors_event_t event;
     compass_HMC.getEvent(&event);
-    compass_heading = atan2(event.magnetic.y, event.magnetic.x) * 180.0 / M_PI;  // - compass_offset;
+    compass_heading = atan2((event.magnetic.y - offsetY), (event.magnetic.x - offsetX)) * 180.0 / M_PI;  // - compass_offset;
   } else {
     compass_QMC.read();
     compass_heading = compass_QMC.getAzimuth();
@@ -21,9 +21,9 @@ void get_compass_data(float target_lat, float target_lon) {
   // Once you have your compass_heading, you must then add your 'Declination Angle', which
   // is the 'Error' of the magnetic field in your location in radians.
   // Find yours here: http://www.magnetic-declination.com/
-  // Salt Lake is 11°0', or 11.0°
+  // Salt Lake is 10°0', or 10.0°
 
-  float declinationAngle = 11.0;
+  float declinationAngle = 10.0;
   compass_heading = compass_heading + declinationAngle;
 
   // Check for wrap due to addition of declination or subtraction of offset.
@@ -64,3 +64,106 @@ void stop_no_compass() {
     Serial.println(F("Ooops, no Compass detected ... Check your wiring!"));
   }
 }  //End of stop_no_compass
+
+// ************************   GET_COMPASS_CALIBRATION   ************************//
+
+
+/**
+EXPLANATION: To get calibrated data, we must get the offset for each sensor, to do this, we basically just read the sensor as we spin it around
+and then add the maximum value to the minimum value and divide by 2 for each direction. We do have a z axis, but I'm only going to do X and Z 
+until 
+
+*/
+void get_compass_calibration() {
+  // String calibration = FS_readData(compass_calibration);
+  unsigned long startTime = millis();
+
+
+  if(LCD_screen == 9 && digitalRead(Sw) == LOW) {
+    lcd.setCursor(0, 0);
+    lcd.print(F("   compass info   "));
+    lcd.setCursor(0, 1);
+    lcd.print(F("Calibrating..."));
+    lcd.setCursor(0, 2);
+    lcd.print(F("spin the car"));
+
+    float xMin = 9999;
+    float zMin = 9999;
+    float yMin = 9999;
+    float yMax = -9999;
+    float xMax = -9999;
+    float zMax = -9999;
+
+    unsigned long start_time = millis();
+
+
+    while (millis() - start_time < 10000) { // Spin car for 10 seconds so we can get the highest and lowest values
+      sensors_event_t event;
+      compass_HMC.getEvent(&event);
+
+      if (event.magnetic.x < xMin) xMin = event.magnetic.x;
+      if (event.magnetic.x > xMax) xMax = event.magnetic.x;
+      if (event.magnetic.y < yMin) yMin = event.magnetic.y;
+      if (event.magnetic.y > yMax) yMax = event.magnetic.y;
+      if (event.magnetic.z < zMin) zMin = event.magnetic.z;
+      if (event.magnetic.z > zMax) zMax = event.magnetic.z;
+
+
+      delay(10);
+    }
+
+    // calculating Offsets
+
+    offsetX = (xMax + xMin) / 2;
+    offsetY = (yMax + yMin) / 2;
+    offsetZ = (zMax + zMin) / 2;
+
+    String temp_offsets = String(offsetX, 3) + ":" + String(offsetY, 3) + ":" + String(offsetZ, 3);
+
+    int strLen = temp_offsets.length() + 1; // +1 to include null terminator
+
+    char temp_offsets_charArray[strLen];
+
+    temp_offsets.toCharArray(temp_offsets_charArray, strLen);
+
+    // TODO
+
+    // writing the data that we just got
+    FS_writeData(compass_calibration, temp_offsets_charArray, sizeof(temp_offsets_charArray));
+  }
+  
+}
+
+
+// ************************   RETRIEVE_COMPASS_DATA   ************************//
+// This function is used to retrieve the data from LittleFS on startup.
+
+void retrieve_Compass_Data() {
+  String data = FS_readData(compass_calibration);
+
+  if (!(data.equals("blank"))) {
+
+  String data = FS_readData(compass_calibration);
+  String values[3];
+  int count = 0;
+
+  while (data.length() > 0 && count < 3) {
+    int splitter = data.indexOf(":");
+    if (splitter == -1) {
+      values[count++] = data;
+      break;
+    } else {
+      values[count++] = data.substring(0, splitter);
+      data = data.substring(splitter + 1);
+    }
+  }
+
+  offsetX = values[0].toDouble();
+  Serial.println(values[0]);
+  offsetY = values[1].toDouble();
+  Serial.println(values[1]);
+  offsetZ = values[2].toDouble();
+  Serial.println(values[2]);
+
+  }
+}

@@ -49,7 +49,7 @@ float calc_mag_rpm() {
 void get_lidar_data() {
   int16_t dist_cm;                     // Leave as int16_t
   luna.getData(dist_cm, lidar_adr);    // Gets distance data from lidar sensor in cm
-  dist_lidar = float(dist_cm) / 2.54 / 12.0;  // Returns the distance in ft
+  dist_lidar = float(dist_cm) / 2.54;  // Returns the distance in inches
 }  //End of get_lidar_data
 
 
@@ -69,12 +69,6 @@ void set_steering(int range) {
       servo_left = 55 + steering_trim;
       servo_right = 125 + steering_trim;
       steering_servo.write(servo_straight);
-      lcd.setCursor(3,0);
-      lcd.print(F("Trim:               "));
-      lcd.setCursor(3,5);
-      lcd.print(steering_trim);
-      lcd.print(" / ");
-      lcd.print(servo_straight);
       delay(100);
     }
   }

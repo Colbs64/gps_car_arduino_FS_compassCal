@@ -4,6 +4,7 @@
 // to specify which PID they are a part off
 
 
+
 // ************************   ESC_PID   ************************//
 
 int esc_pid(int speed) {
@@ -14,9 +15,7 @@ int esc_pid(int speed) {
   float deltaT, mag_rpm, set_rpm;
   int throttle_command, pid_throttle;  // make variables "static" if you uncomment Integral Check
 
-  const float Kp = 0.44 / 2.0;
-  const float Ki = 0.3 / 2.0;
-  const float Kd = 0.1 / 2.0;
+  
 
   const float mph_to_rpm = 175.36766;  // 5280 ft\mile * 12 in\ft * 2.6 rev_enc\rev_wheel / 15.65625 in\rev_wheel / 60 minutes\hr
 

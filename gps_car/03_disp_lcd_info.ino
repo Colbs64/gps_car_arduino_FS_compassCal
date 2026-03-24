@@ -6,10 +6,10 @@ void disp_lcd_info() {
   disp_time = disp_time + disp_delay;
 
   // Constrain LCD_screen to correct values - This used to be done in ISR, but figure this is better...
-
+  
   // Option 1 - cap at 0 and top
   LCD_screen = constrain(LCD_screen, 0, num_LCD_screens);  // Cap screens at limits
-
+  
   // Option 2 - wrap lcd screen around...
   // if (LCD_screen > num_LCD_screens) {
   //   LCD_screen = 0;
@@ -43,6 +43,15 @@ void disp_lcd_info() {
       break;
     case 6:  // Battery Information
       Battery_Screen();
+      break;
+    case 7: // PID information
+      PID_screen();
+      break;
+    case 8:
+      PID_gain();
+      break;
+    case 9:
+      compass_Screen();
       break;
     default:
       lcd.setCursor(0, 1);
@@ -217,7 +226,7 @@ void Environment_Screen() {  // Environmental Information
   lcd.setCursor(0, 1);
   lcd.print(F("gps_age:            "));
   lcd.setCursor(8, 1);
-  if (gps.location.isValid()) lcd.print(gps.location.age());
+  if (gps.location.isValid())  lcd.print(gps.location.age());
   else lcd.print("  N/A  ");
   lcd.setCursor(0, 2);
   lcd.print(F("GPS Speed: "));
@@ -236,20 +245,89 @@ void Battery_Screen() {  // Battery Information
   //2  Cell 2: ##.## V
   //3  Total : ##.## V
   calc_batt_voltage();  // measure battery voltage
-  lcd.setCursor(0, 0);
-  lcd.print(F("   Battery Status   "));
-  lcd.setCursor(0, 1);
-  lcd.print(F("Cell 1: "));
-  lcd.print(volts_cell_1);
-  lcd.print(F(" V"));
-  lcd.setCursor(0, 2);
-  lcd.print(F("Cell 2: "));
-  lcd.print(volts_cell_2);
-  lcd.print(F(" V"));
-  lcd.setCursor(0, 3);
+  // lcd.setCursor(0, 0);
+  // lcd.print(F("   Battery Status   "));
+  // lcd.setCursor(0, 1);
+  // lcd.print(F("Cell 1: "));
+  // lcd.print(volts_cell_1);
+  // lcd.print(F(" V"));
+  // lcd.setCursor(0, 2);
+  // lcd.print(F("Cell 2: "));
+  // lcd.print(volts_cell_2);
+  // lcd.print(F(" V"));
+  // lcd.setCursor(0, 3);
   lcd.print(F("Total : "));
   lcd.print(volts_total);
   lcd.print(F(" V"));
+}
+
+void PID_screen() { // PID information Speed and error
+  //   01234567890123456789
+  //0          PID
+  //1 Target speed: ***
+  //2 Speed: ***
+  //3 Error: speed-target
+  const float rpm_to_mph = 175.36766;
+  const float target_speed = 5;
+
+  float rpm = calc_mag_rpm();
+  // RPM = calc_mag_rpm();
+  lcd.setCursor(0, 0);
+  lcd.print(F("        PID       "));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Target speed: "));
+  lcd.print(target_speed);
+  lcd.setCursor(0, 2);
+  lcd.print(F("Speed(MPH): "));
+  lcd.print(rpm * rpm_to_mph);
+  lcd.setCursor(0, 3);
+  lcd.print(F("Error: "));
+  lcd.print((rpm*rpm_to_mph) - target_speed);
+}
+
+void PID_gain() { // COLBY: Variables from pid.ino have been made global
+  //   01234567890123456789
+  //0       PID Gain
+  //1  Kp: 
+  //2  Ki:
+  //3  Kd: 
+  lcd.setCursor(0, 0);
+  lcd.print(F("    PID Gain    "));
+  lcd.setCursor(0, 1);
+  lcd.print(F("Kp: "));
+  lcd.print(Kp);
+  lcd.setCursor(0, 2);
+  lcd.print(F("Ki: "));
+  lcd.print(Ki);
+  lcd.setCursor(0, 3);
+  lcd.print(F("Kd: "));
+  lcd.print(Kd);
+}
+
+void compass_Screen() {
+  // 01234567890123456789
+  //0      Compass Info
+  //1 
+
+  lcd.setCursor(0, 0);
+  lcd.print(F("   compass info   "));
+  lcd.setCursor(0, 1);
+  if (FS_init && (offsetX == 0 && offsetY == 0)) {
+    lcd.print(F("Press encode"));
+    lcd.setCursor(0, 2);
+    lcd.print(F("To calibrate"));
+  } else if (!FS_init) {
+    lcd.print(F("LittleFS failed"));
+  } else {
+      lcd.print(F("offsetX: "));
+      lcd.print(offsetX);
+      lcd.setCursor(0, 2);
+      lcd.print(F("offsetY: "));
+      lcd.print(offsetY);
+      lcd.setCursor(0, 3);
+      lcd.print(F("offsetZ: "));
+      lcd.print(offsetZ);
+  }
 }
 
 void blink_acquiring() {

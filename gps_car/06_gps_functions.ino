@@ -28,10 +28,10 @@ void get_gps_data(float target_lat, float target_lon) {
   }
 
   // Figure out GPS Date / Time
-  byte gps_month  = gps.date.month();
-  byte gps_day    = gps.date.day();
-  byte gps_year   = gps.date.year() - 2000;   // put it in a shorter format
-  int gps_hour    = gps.time.hour();          // this needs to be int so late at night it doesn't get all jacked up
+  byte gps_month = gps.date.month();
+  byte gps_day = gps.date.day();
+  byte gps_year = gps.date.year() - 2000;  // put it in a shorter format
+  int gps_hour = gps.time.hour();          // this needs to be int so late at night it doesn't get all jacked up
   byte gps_minute = gps.time.minute();
   byte gps_second = gps.time.second();
 
@@ -58,6 +58,32 @@ void get_gps_data(float target_lat, float target_lon) {
   sprintf(gps_speed, "%2d", round(gps.speed.mph()));
 }  //End of get_gps_data
 
+// ************************   use_gps_heading   ************************//
+
+// This code is used to get the gps_heading and then use it as our main heading.
+// We want to switch from compass to gps when we're going faster than 2 miles per hour
+void use_gps_heading(float target_lat, float target_lon) {
+  compass_heading = gps.course.deg();
+  gps_heading = atan2(target_lon - gps.location.lng(), target_lat - gps.location.lat()) * 180.0 / M_PI;
+  
+  if (abs(compass_heading) > 180) {
+    if (compass_heading > 180) {
+      compass_heading -= 360;
+    }
+    if (compass_heading < -180) {
+      compass_heading += 360;
+    }
+  }
+
+  heading_error = compass_heading - gps_heading;
+  // wrap heading_error so it is between -180 and 180
+  if (heading_error < -180) {
+    heading_error += 360;
+  }
+  if (heading_error > 180) {
+    heading_error += -360;
+  }
+}
 
 
 // ************************   STOP_NO_GPS   ************************//

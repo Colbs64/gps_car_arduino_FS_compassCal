@@ -8,21 +8,20 @@ void setup() {
   // Serial.begin(9600);
   // delay(2000);
 
-  // Serial.println(F("Starting Setup"));
+  // Serial.println(F("Starting Loop"));
   // delay(1000);
 
   pinMode(LEDR, OUTPUT);  // LED(27)
   pinMode(LEDG, OUTPUT);  // LED(25)
   pinMode(LEDB, OUTPUT);  // LED(26)
 
-  pinMode(Clk, INPUT);                  // D2
+  pinMode(Clk, INPUT_PULLUP);           // D2
   pinMode(Dt, INPUT);                   // D3
   pinMode(Sw, INPUT_PULLUP);            // D4
   pinMode(pixel_pin, OUTPUT);           // D8
   pinMode(esc_servo_pin, OUTPUT);       // D9
   pinMode(steering_servo_pin, OUTPUT);  // D10
-  pinMode(green_car_pin, INPUT_PULLUP); // D11
-  pinMode(hall_pin, INPUT);             // D12
+  pinMode(hall_pin, INPUT_PULLUP);      // D12
   pinMode(buzzer_pin, OUTPUT);          // D13
 
   pinMode(batt_cell_1_pin, INPUT);    // A0
@@ -71,21 +70,13 @@ void setup() {
 
 
   // Fix Steering offsets
-
- ///////////////////////////////////////////////////  WARNING  //////////////////////////////////////
-  // 
-  // For this to make sense, you MUST run it on each car individually to set the pot, then leave the
-  // pot in that same position from then on.  If it gets moved, or if it is not run, it will make
-  // the wheels point in weird directions!
-  //
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
- 
+  // qj - warning - this will only read once, so it will only read on startup - should probably move this to loop...
   int range = 15;
-  // set_steering(range); // Uncomment to set steering trim
   steering_trim = map(analogRead(steering_trim_pin), 0, 1023, -range, range);  // potentially change to pwm values 1000 - 2000
   servo_straight = servo_straight + steering_trim;
   servo_left = servo_left + steering_trim;
   servo_right = servo_right + steering_trim;
+  // set_steering(range); // Uncomment to set steering trim
 
 
   //  /* Initialize the compass */
@@ -117,6 +108,16 @@ void setup() {
   }
   delay(100);
 
+  // Mounting FS
+  myFS = new LittleFS_MBED();
+  if (myFS->init()) { 
+    FS_init = true;
+    Serial.println("LittleFS mounted!");
+  } else {
+    Serial.println("LITTLEFS MOUNT FAILED");
+  }
+
+  retrieve_Compass_Data();
 
   //neo-pixel initialization
   neo_pixel.begin();
@@ -172,10 +173,21 @@ void loop() {
   get_gps_data(target_lat, target_lon);
 
   // get compass data ...
-  get_compass_data(target_lat, target_lon);
 
+  // COLBY: All this code made the car crash into a wall
+  // if( (calc_mag_rpm()/175.36766) > 2.0 ) { // COLBY: Calculating our speed using our RPM converted to MPH
+  //   use_gps_heading(target_lat, target_lon);
+  // } else {
+  //   get_compass_data(target_lat, target_lon);
+  // }
+
+  get_compass_data(target_lat, target_lon);
+  
   // get distance from LIDAR sensor
   get_lidar_data();
+
+  // COLBY: Gets the compass calibration if the LCD screen is on 9 and the encoder is pressed
+  get_compass_calibration();
 
 
   // check if have GPS lock yet (or if it has been too long since update) - if not, let user know

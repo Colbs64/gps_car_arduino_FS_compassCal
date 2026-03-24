@@ -61,7 +61,6 @@ void neo_design(int red, int green, int blue, int option) {
         delay(75);
       }
       break;
-
     case 2:  // cycles green once
 
       for (int j = 0; j <= 7; j++) {
@@ -84,42 +83,32 @@ void neo_design(int red, int green, int blue, int option) {
         delay(speed);
       }
       break;
-
     case 4:  //
       neo_pixel.show();
       break;
-
     case 5:  //
       neo_pixel.show();
       break;
-
     case 6:  //
       neo_pixel.show();
       break;
-
     case 7:  //
       neo_pixel.show();
       break;
-
     case 8:  //
       neo_pixel.show();
       break;
-
     case 70:  //
       neo_disco();
       break;
-
     case 911:  //
       neo_police();
       break;
-
     case 2000:  //
       neo_knight_rider();
       break;
-
     default:  // runs if option doesn't match case
       break;
-
   }
 }
 
@@ -158,6 +147,57 @@ void neo_knight_rider() {
     neo_pixel.show();
   }
 }
+// void neo_knight_rider() {
+//   byte brightness = 3;
+//   static bool fb = 1;
+//   static int j = 0;
+//   static unsigned long last_time = 0;
+//   if (millis() > last_time + 75) {
+//     last_time = millis();
+//     if (fb == 1) {
+//       if (j >= 7) {
+//         neo_pixel.setPixelColor(7, neo_pixel.Color(neo_red / brightness, neo_green / brightness, neo_blue / brightness));
+//         neo_pixel.setPixelColor(7, neo_pixel.Color(250 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 1, neo_pixel.Color(100 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 2, neo_pixel.Color(20 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 3, neo_pixel.Color(10 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 4, neo_pixel.Color(1, 0, 0));
+//       } else {
+//         neo_pixel.setPixelColor(j + 0, neo_pixel.Color(250 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 1, neo_pixel.Color(100 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 2, neo_pixel.Color(20 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 3, neo_pixel.Color(10 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j - 4, neo_pixel.Color(1, 0, 0));
+//       }
+//       j++;
+//       if (j > 9) {
+//         j = 7;
+//         fb = 0;
+//       }
+//     } else {
+//       if (j <= 0) {
+//         neo_pixel.setPixelColor(0, neo_pixel.Color(250 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 1, neo_pixel.Color(100 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 2, neo_pixel.Color(20 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 3, neo_pixel.Color(10 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 4, neo_pixel.Color(1, 0, 0));
+//       } else {
+//         neo_pixel.setPixelColor(j + 0, neo_pixel.Color(250 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 1, neo_pixel.Color(100 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 2, neo_pixel.Color(20 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 3, neo_pixel.Color(10 / brightness, 0, 0));
+//         neo_pixel.setPixelColor(j + 4, neo_pixel.Color(1, 0, 0));
+//       }
+//       j--;
+//       if (j < -2) {
+//         j = 0;
+//         fb = 1;
+//       }
+//     }
+//     neo_pixel.show();
+//   }
+// }
+
 
 
 // WIP

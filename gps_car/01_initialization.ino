@@ -52,6 +52,10 @@
 //      - screen number
 //      - stop_no_gps like stop_no_compass, standardize?
 
+// ************ Added by Colby **********
+// LittleFS for storing data
+//
+//
 
 //=================  Pin definitions  =================//
 // try to define each pins' use
@@ -97,7 +101,7 @@ bool beeped = 0;
 
 volatile byte LCD_screen = 1;
 byte LCD_screen_old = 0;
-byte num_LCD_screens = 6;
+byte num_LCD_screens = 9;
 
 int neo_delay = 100;
 unsigned long neo_time = 0;
@@ -146,7 +150,7 @@ byte servo_straight = 90;
 byte servo_left = 55;    // 60;
 byte servo_right = 125;  // 127;
 byte servo_large_circle = 105;
-byte steering_trim;
+int steering_trim;
 
 // Values range between ~1000 and ~2000
 int esc_default = 1500;        // 90;
@@ -167,7 +171,33 @@ float rpm = 0;
 int pid_command = esc_command;
 int steer_command = servo_command;
 unsigned long prev_esc_Time = 0;
+
+// COLBY: Added Variables as global to let the display function use them
+const float Kp = 0.44 / 2.0;
+const float Ki = 0.3 / 2.0;
+const float Kd = 0.1 / 2.0;
 // unsigned long prev_servo_Time = 0;  // For Steering PID, Haven't set up yet
+
+// COLBY: Im not sure why this is necessary for LittleFS, but it is.
+#define LFS_MBED_RP2040_VERSION_MIN_TARGET      "LittleFS_Mbed_RP2040 v1.1.0" 
+#define LFS_MBED_RP2040_VERSION_MIN             1001000 
+
+#define _LFS_LOGLEVEL_          1 
+#define RP2040_FS_SIZE_KB       64 
+  
+#define FORCE_REFORMAT          false 
+
+#include <LittleFS_Mbed_RP2040.h> // File System for storing data like Compass calibration.
+
+
+LittleFS_MBED *myFS;
+char compass_calibration[] = MBED_LITTLEFS_FILE_PREFIX "/compass.txt";
+bool FS_init = false;
+float offsetX = 0.0;
+float offsetY = 0.0;
+float offsetZ = 0.0;
+// COLBY: Calling previous data, if it exists we use it, if it doesn't we use defaults.
+// Data is structured in the format "offsetX:offsetY:offsetZ"
 
 
 //=============== Initialize Libraries ================//
@@ -211,3 +241,4 @@ QMC5883LCompass compass_QMC;
 #include <TFLI2C.h>            // TFLuna-I2C Library v.0.1.1
 TFLI2C luna;                   // create object for distance sensor, willing to rename
 #define lidar_adr TFL_DEF_ADR  // set address for distance sensor
+
