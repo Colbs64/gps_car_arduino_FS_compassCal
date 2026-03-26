@@ -245,17 +245,9 @@ void Battery_Screen() {  // Battery Information
   //2  Cell 2: ##.## V
   //3  Total : ##.## V
   calc_batt_voltage();  // measure battery voltage
-  // lcd.setCursor(0, 0);
-  // lcd.print(F("   Battery Status   "));
-  // lcd.setCursor(0, 1);
-  // lcd.print(F("Cell 1: "));
-  // lcd.print(volts_cell_1);
-  // lcd.print(F(" V"));
-  // lcd.setCursor(0, 2);
-  // lcd.print(F("Cell 2: "));
-  // lcd.print(volts_cell_2);
-  // lcd.print(F(" V"));
-  // lcd.setCursor(0, 3);
+  lcd.setCursor(0, 0);
+  lcd.print(F("   Battery Status   "));
+  lcd.setCursor(0, 1);
   lcd.print(F("Total : "));
   lcd.print(volts_total);
   lcd.print(F(" V"));
