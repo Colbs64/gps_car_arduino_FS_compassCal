@@ -61,7 +61,7 @@ void stop_no_compass() {
   lcd.setCursor(0, 3);
   lcd.print(F("continue ..."));
   while (1) {
-    Serial.println(F("Ooops, no Compass detected ... Check your wiring!"));
+    // Serial.println(F("Ooops, no Compass detected ... Check your wiring!"));
   }
 }  //End of stop_no_compass
 
@@ -116,20 +116,13 @@ void get_compass_calibration() {
 
     offsetX = (xMax + xMin) / 2;
     offsetY = (yMax + yMin) / 2;
-    offsetZ = (zMax + zMin) / 2;
 
-    String temp_offsets = String(offsetX, 3) + ":" + String(offsetY, 3) + ":" + String(offsetZ, 3);
-
-    int strLen = temp_offsets.length() + 1; // +1 to include null terminator
-
-    char temp_offsets_charArray[strLen];
-
-    temp_offsets.toCharArray(temp_offsets_charArray, strLen);
-
-    // TODO
+    char finalBuffer[15];
+    
+    sprintf(finalBuffer, "%.2f:%.2f");
 
     // writing the data that we just got
-    FS_writeData(compass_calibration, temp_offsets_charArray, sizeof(temp_offsets_charArray));
+    FS_writeData(compass_calibration, finalBuffer, sizeof(finalBuffer));
   }
   
 }
@@ -139,31 +132,23 @@ void get_compass_calibration() {
 // This function is used to retrieve the data from LittleFS on startup.
 
 void retrieve_Compass_Data() {
-  String data = FS_readData(compass_calibration);
+  char temp[15];
 
-  if (!(data.equals("blank"))) {
+  int correct = FS_readData(compass_calibration, temp, sizeof(temp));
+  if (correct) {
 
-  String data = FS_readData(compass_calibration);
-  String values[3];
-  int count = 0;
+    char* xValue = strtok(temp, ":");
 
-  while (data.length() > 0 && count < 3) {
-    int splitter = data.indexOf(":");
-    if (splitter == -1) {
-      values[count++] = data;
-      break;
-    } else {
-      values[count++] = data.substring(0, splitter);
-      data = data.substring(splitter + 1);
-    }
+    char* yValue = strtok(NULL, ":");
+
+
+    offsetX = atof(xValue);
+    // Serial.println(values[0]);
+    offsetY = atof(yValue);
+    // Serial.println(values[1]);
   }
 
-  offsetX = values[0].toDouble();
-  Serial.println(values[0]);
-  offsetY = values[1].toDouble();
-  Serial.println(values[1]);
-  offsetZ = values[2].toDouble();
-  Serial.println(values[2]);
+  
 
-  }
+
 }

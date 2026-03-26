@@ -25,8 +25,8 @@ byte neo_blue = 250;
 
 const char course_name[] = "    Day 1 Demo      ";
 const byte num_gps_tgts = 7;
-const float target_lats[num_gps_tgts]  = { 40.645520,   40.645431,   40.645423, 40.645537};
-const float target_longs[num_gps_tgts] = {-111.992203, -111.992184, -111.992762, -111.992755};
+const float target_lats[num_gps_tgts]  = { 40.671649,   40.671460,   40.671635, 40.671510};
+const float target_longs[num_gps_tgts] = {-111.946054, -111.946196, -111.946217, -111.945980};
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //                                                                                     //

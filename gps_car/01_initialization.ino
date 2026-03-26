@@ -179,13 +179,13 @@ const float Kd = 0.1 / 2.0;
 // unsigned long prev_servo_Time = 0;  // For Steering PID, Haven't set up yet
 
 // COLBY: Im not sure why this is necessary for LittleFS, but it is.
-#define LFS_MBED_RP2040_VERSION_MIN_TARGET      "LittleFS_Mbed_RP2040 v1.1.0" 
-#define LFS_MBED_RP2040_VERSION_MIN             1001000 
+// #define LFS_MBED_RP2040_VERSION_MIN_TARGET      "LittleFS_Mbed_RP2040 v1.1.0" 
+// #define LFS_MBED_RP2040_VERSION_MIN             1001000 
 
-#define _LFS_LOGLEVEL_          1 
-#define RP2040_FS_SIZE_KB       64 
+// #define _LFS_LOGLEVEL_          1 
+// #define RP2040_FS_SIZE_KB       64 
   
-#define FORCE_REFORMAT          false 
+// #define FORCE_REFORMAT          false 
 
 #include <LittleFS_Mbed_RP2040.h> // File System for storing data like Compass calibration.
 
@@ -195,7 +195,6 @@ char compass_calibration[] = MBED_LITTLEFS_FILE_PREFIX "/compass.txt";
 bool FS_init = false;
 float offsetX = 0.0;
 float offsetY = 0.0;
-float offsetZ = 0.0;
 // COLBY: Calling previous data, if it exists we use it, if it doesn't we use defaults.
 // Data is structured in the format "offsetX:offsetY:offsetZ"
 

@@ -112,9 +112,9 @@ void setup() {
   myFS = new LittleFS_MBED();
   if (myFS->init()) { 
     FS_init = true;
-    Serial.println("LittleFS mounted!");
+    // Serial.println("LittleFS mounted!");
   } else {
-    Serial.println("LITTLEFS MOUNT FAILED");
+    // Serial.println("LITTLEFS MOUNT FAILED");
   }
 
   retrieve_Compass_Data();
@@ -161,7 +161,6 @@ void loop() {
   // if gps not there after 60 seconds, stop the program ...
   if (millis() > 30000 && gps.charsProcessed() < 10)
     stop_no_gps();  // Stop the program, display "Check Wiring" error
-
   while (Serial1.available() > 0) {
     gps.encode(Serial1.read());
   }
@@ -187,7 +186,6 @@ void loop() {
   get_lidar_data();
 
   // COLBY: Gets the compass calibration if the LCD screen is on 9 and the encoder is pressed
-  get_compass_calibration();
 
 
   // check if have GPS lock yet (or if it has been too long since update) - if not, let user know
@@ -200,8 +198,12 @@ void loop() {
   }     //
   else  // have (current) gps
   {
+
+    
     if (beeped != 1) beep();  // beep first time it acquires GPS
 
+
+    
     //  update servo command every so often ...
     if (millis() > servo_write_time) {
 

@@ -308,7 +308,7 @@ void compass_Screen() {
   // 01234567890123456789
   //0      Compass Info
   //1 
-
+  get_compass_calibration();
   lcd.setCursor(0, 0);
   lcd.print(F("   compass info   "));
   lcd.setCursor(0, 1);
@@ -324,9 +324,6 @@ void compass_Screen() {
       lcd.setCursor(0, 2);
       lcd.print(F("offsetY: "));
       lcd.print(offsetY);
-      lcd.setCursor(0, 3);
-      lcd.print(F("offsetZ: "));
-      lcd.print(offsetZ);
   }
 }
 
