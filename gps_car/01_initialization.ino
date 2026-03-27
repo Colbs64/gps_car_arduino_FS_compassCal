@@ -172,23 +172,14 @@ int pid_command = esc_command;
 int steer_command = servo_command;
 unsigned long prev_esc_Time = 0;
 
-// COLBY: Added Variables as global to let the display function use them
+// Global PID variables for use in screen.
 const float Kp = 0.44 / 2.0;
 const float Ki = 0.3 / 2.0;
 const float Kd = 0.1 / 2.0;
 // unsigned long prev_servo_Time = 0;  // For Steering PID, Haven't set up yet
 
-// COLBY: Im not sure why this is necessary for LittleFS, but it is.
-// #define LFS_MBED_RP2040_VERSION_MIN_TARGET      "LittleFS_Mbed_RP2040 v1.1.0" 
-// #define LFS_MBED_RP2040_VERSION_MIN             1001000 
-
-// #define _LFS_LOGLEVEL_          1 
-// #define RP2040_FS_SIZE_KB       64 
-  
-// #define FORCE_REFORMAT          false 
-
+// Imports for littleFS as well as definitions.
 #include <LittleFS_Mbed_RP2040.h> // File System for storing data like Compass calibration.
-
 
 LittleFS_MBED *myFS;
 char compass_calibration[] = MBED_LITTLEFS_FILE_PREFIX "/compass.txt";
@@ -240,4 +231,3 @@ QMC5883LCompass compass_QMC;
 #include <TFLI2C.h>            // TFLuna-I2C Library v.0.1.1
 TFLI2C luna;                   // create object for distance sensor, willing to rename
 #define lidar_adr TFL_DEF_ADR  // set address for distance sensor
-
