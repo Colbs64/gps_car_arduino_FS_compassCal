@@ -1,48 +1,24 @@
-// This version is to match the hardware of v9.0 -
+// This version is to match the hardware of v10.0 -
 
 //================== Version Update ===================//
 //
-// 9.0.1 - HW v 9.0, the .1 is for next step in code (newly compiled files)
+// 10.0 - HW v 10.0, SW 2.0
 //
 //=====================================================//
 
 // Hardware -
-// Changed -
-//      - from 5v Nano to 3.3v rp2040
-//      - from analog IR Distance sensor to I2C LiDAR Distance sensor
-//      - from Tri-color LED to onboard LED on rp2040
-// Added -
-//      - Hall effect sensor
-//      - Steering trim potentiometer
-//      - High to Low Logic Level Converter
-//      - Voltage divider on input of cell 1 of battery
-//      - Green car trigger, pin 11, not used for slick science
-//      - Magnet Wheel 6
-// Removed -
+//   - removed 2-cell reading - only read total battery
+//   - added filter for power to GPS
+//   - added filter / caps to main battery voltage divider
 //
-
 // Software -
 // Changed -
-//      - from 5v Nano to 3.3v rp2040
-//      - from analog Distance sensor to I2C Distance sensor
-//      - sorted functions into named files
-//      - Renamed some variables
-//      - Reformated 01_initialization
-//      - Reformated setup() in 02_setup_loop
-//      - small rearrange in loop() in 02_setup_loop
-//      - Reformated 03_disp_lcd_info
-//      - Renamed isr() to isr_encoder()
-//      - Rewrote stop_no_gps()
+//   - switched loop to be a switch/case configuration
+// 
 // Added -
-//      - esc_pid() in 10_pid, and corresponding code in loop()
-//      - isr_hall() in 09_isr
-//      - isr_encoder_new() in 09_isr, Uses new code
-//      - set_steering() in 08_sensor_functions, and corresponding code in loop()
-//      - Voltage divider on input of cell 1 of battery
-//      - Green car trigger, pin 11, not used for slick science
+// 
 // Removed -
 //      - outdated code
-
 // Future -
 // Changes?-
 //      - New IMU compass
@@ -167,6 +143,37 @@ byte target_speed;
 float rpm = 0;
 int pid_command = esc_command;
 int steer_command = servo_command;
+
+//=============== Different cases in void loop ==============//
+// Change as needed -EH
+//===========================================================//
+
+enum Car_state {
+  STATE_NO_GPS,
+  STATE_OBSTACLE_STOP,
+  STATE_AT_TARGET,
+  STATE_DRIVING
+};
+Car_state currentState;
+
+//=============== different gps offset based on car ==============//
+// Change as needed -EH
+//================================================================//
+
+enum which_car {
+    DINO,
+    BUMBLEBEE,
+    JEEVES,
+    GOJIRA,
+    DEEP_THOUGHT,
+    MELLENIAL_FALCON,
+    ROAD_RUNNER,                                                                                                                                 
+    NIGHT_FURY,
+    SERENITY,
+    SHAI_HULUD
+};
+which_car car_name;
+
 
 //=============== Initialize Libraries ================//
 // Include Libraries, Setup objects, modules, etc.
