@@ -68,14 +68,15 @@ void stop_no_compass() {
 // ************************   GET_COMPASS_CALIBRATION   ************************//
 
 
-/**
-EXPLANATION: To get calibrated data, we must get the offset for each sensor, to do this, we basically just read the sensor as we spin it around
-and then add the maximum value to the minimum value and divide by 2 for each direction. We do have a z axis, but I'm only going to do X and Z 
-until 
-
+/*
+This function is used to calibrate the compass by measuring values during a 20 second period.
+You're supposed to spin the car while this is happening so that the compass can measure maximum and
+minimum values for the axis' we're using, x and y. It then uses these to get an average between them ((xMin+xMax)/2)
+The logic behind this is to adjust our measurements for the distorted range of measurement. When the compass measures data
+it is always going to be distorted due to nearby metals, magnets, or even our motor. What might be good in the future is to
+do this calibration while the motor is running so that we can offset any distortions caused by it.
 */
 void get_compass_calibration() {
-  // String calibration = FS_readData(compass_calibration);
   unsigned long startTime = millis();
 
 
@@ -97,7 +98,7 @@ void get_compass_calibration() {
     unsigned long start_time = millis();
 
 
-    while (millis() - start_time < 10000) { // Spin car for 10 seconds so we can get the highest and lowest values
+    while (millis() - start_time < 20000) { // Spin car for 20 seconds so we can get the highest and lowest values
       sensors_event_t event;
       compass_HMC.getEvent(&event);
 
@@ -118,18 +119,19 @@ void get_compass_calibration() {
     offsetY = (yMax + yMin) / 2;
 
     char finalBuffer[15];
-    
+
     sprintf(finalBuffer, "%.2f:%.2f");
 
     // writing the data that we just got
     FS_writeData(compass_calibration, finalBuffer, sizeof(finalBuffer));
   }
-  
+
 }
 
 
 // ************************   RETRIEVE_COMPASS_DATA   ************************//
-// This function is used to retrieve the data from LittleFS on startup.
+// This function is used to retrieve the compass data from LittleFS on startup. The values are stored as
+// "offsetX:offsetY", this parses both parts and assigns the offsets to the global variables.
 
 void retrieve_Compass_Data() {
   char temp[15];
@@ -148,7 +150,7 @@ void retrieve_Compass_Data() {
     // Serial.println(values[1]);
   }
 
-  
+
 
 
 }
