@@ -231,6 +231,7 @@ void loop() {
         esc_servo.write(esc_stop);
         steering_servo.write(servo_straight); 
         digitalWrite(buzzer_pin,1);   // just beep!
+        LCD_screen = 6;  // this is the battery screen - force it to display what is happening
         break;
 
 
@@ -239,7 +240,6 @@ void loop() {
         // set wheels straight, servo stopped
         servo_command = servo_straight;
         esc_command = esc_stop;
-        LCD_screen = 6;  // this is the battery screen - force it to display what is happening
         break;
 
 
