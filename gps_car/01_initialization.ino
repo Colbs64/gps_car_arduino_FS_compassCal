@@ -183,12 +183,17 @@ enum which_car {
 which_car car_name;
 
 
-//============== Compass offsets =========//
+//============== Compass offsets and FS imports =========//
 // -C
-//========================================//
+//=======================================================//
 float offsetX = 0.0;
 float offsetY = 0.0;
 float offsetZ = 0.0;
+// Imports for littleFS as well as definitions.
+#include <LittleFS_Mbed_RP2040.h> // File System for storing data like Compass calibration.
+
+LittleFS_MBED *myFS;
+char compass_calibration[] = MBED_LITTLEFS_FILE_PREFIX "/compass.txt";
 //=============== Initialize Libraries ================//
 // Include Libraries, Setup objects, modules, etc.
 //=====================================================//
