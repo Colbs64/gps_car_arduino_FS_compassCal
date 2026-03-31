@@ -134,6 +134,17 @@ void setup() {
 
   neo_design(0);  // turn neo_pixel off
 
+  // Mounting FS
+    myFS = new LittleFS_MBED();
+    if (myFS->init()) {
+      FS_init = true;
+      // Serial.println("LittleFS mounted!");
+    } else {
+      // Serial.println("LITTLEFS MOUNT FAILED");
+    }
+
+    retrieve_Compass_Data();
+
 
 
   // calibrate_compass();
@@ -229,7 +240,7 @@ void loop() {
 
       case STATE_LOW_BATTERY:
         esc_servo.write(esc_stop);
-        steering_servo.write(servo_straight); 
+        steering_servo.write(servo_straight);
         digitalWrite(buzzer_pin,1);   // just beep!
         LCD_screen = 6;  // this is the battery screen - force it to display what is happening
         break;

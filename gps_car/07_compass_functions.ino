@@ -139,3 +139,29 @@ void calibrate_compass() {
       compass_QMC.calibrate(); // THrowing errors saying that calibrate is not part of QMC -C
     }
 }
+
+// ************************   RETRIEVE_COMPASS_DATA   ************************//
+// This function is used to retrieve the compass data from LittleFS on startup. The values are stored as
+// "offsetX:offsetY", this parses both parts and assigns the offsets to the global variables.
+
+void retrieve_Compass_Data() {
+  char temp[15];
+
+  int correct = FS_readData(compass_calibration, temp, sizeof(temp));
+  if (correct) {
+
+    char* xValue = strtok(temp, ":");
+
+    char* yValue = strtok(NULL, ":");
+
+
+    offsetX = atof(xValue);
+    // Serial.println(values[0]);
+    offsetY = atof(yValue);
+    // Serial.println(values[1]);
+  }
+
+
+
+
+}

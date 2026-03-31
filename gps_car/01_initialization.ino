@@ -191,7 +191,7 @@ float offsetY = 0.0;
 float offsetZ = 0.0;
 // Imports for littleFS as well as definitions.
 #include <LittleFS_Mbed_RP2040.h> // File System for storing data like Compass calibration.
-
+bool FS_init = false;
 LittleFS_MBED *myFS;
 char compass_calibration[] = MBED_LITTLEFS_FILE_PREFIX "/compass.txt";
 //=============== Initialize Libraries ================//
