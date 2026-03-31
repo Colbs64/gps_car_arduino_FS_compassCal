@@ -307,6 +307,9 @@ void compass_Screen() {
       lcd.setCursor(0, 2);
       lcd.print(F("offsetY: "));
       lcd.print(offsetY);
+      lcd.setCursor(0, 3);
+      lcd.print(F("offsetZ: "));
+      lcd.print(offsetZ);
   }
 }
 
