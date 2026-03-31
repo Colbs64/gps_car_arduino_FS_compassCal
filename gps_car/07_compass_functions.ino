@@ -74,8 +74,6 @@ void calibrate_compass() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(F("Rotate car 360°"));
-  while (1)  //
-  {
       float xMin = 9999;
       float zMin = 9999;
       float yMin = 9999;
@@ -129,12 +127,9 @@ void calibrate_compass() {
       lcd.print(zMax,1);
       lcd.print(",");
       lcd.print(offsetZ);
-
-      // delay(250);
-    }     //
+      }     //
     else  //
     {
-      compass_QMC.calibrate();
+      compass_QMC.calibrate(); // THrowing errors saying that calibrate is not part of QMC -C
     }
-  }
 }
