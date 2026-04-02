@@ -106,9 +106,9 @@ void calibrate_compass() {
       offsetZ = (zMax + zMin) / 2;
 
 
-      char finalBuffer[25];
+      char finalBuffer[32];
 
-    sprintf(finalBuffer, "%.2f:%.2f", offsetX, offsetY);
+    snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f", offsetX, offsetY);
       // writing the data that we just got
     FS_writeData(compass_calibration, finalBuffer, strlen(finalBuffer));
       }     //
@@ -130,10 +130,10 @@ void retrieve_Compass_Data() {
   if (!correct) return;
 
     char* xValue = strtok(temp, ":");
-    Serial.println(atof(xValue));
+    Serial.println(xValue);
 
     char* yValue = strtok(NULL, ":");
-    Serial.println(atof(yValue));
+    Serial.println(yValue);
 
     offsetX = atof(xValue);
     // Serial.println(values[0]);

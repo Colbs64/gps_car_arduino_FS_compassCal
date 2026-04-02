@@ -6,6 +6,8 @@
 // Returns data as a chararray to out_str
 // int is used to check if the file is opened properly or if the command operated successfully
 int FS_readData(const char * path, char* out_str, size_t size) {
+  if (!out_str || size == 0) return 0;
+
   FILE *file = fopen(path, "r");
 
   // Testing if file exists
@@ -18,19 +20,20 @@ int FS_readData(const char * path, char* out_str, size_t size) {
     return 0;
   }
 
-  char c;
-  int i = 0;
+  int c;
+  size_t i = 0;
 
   // looping through each characters and adding it to our output out_str
-  while(true) {
-    c = fgetc(file);
-    if (feof(file)) {
-      break;
+  while((c = fgetc(file)) != EOF) {
+    // checking if the file is longer than the size of the buffer. If it is return 0
+    // so that we can just ask for the user to recalibrate the compass.
+    if (i + 1 >= size) {
+        out_str[0] = '\0'; // marking output as unusable
+        fclose(file);
+        return 0;
     }
-    else {
-      Serial.print(c);
-      out_str[i] = (char)c;
-    }
+
+    out_str[i] = (char)c;
     i++;
   }
   // adding null terminator
