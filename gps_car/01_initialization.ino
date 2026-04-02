@@ -14,9 +14,9 @@
 // Software -
 // Changed -
 //   - switched loop to be a switch/case configuration
-// 
+//
 // Added -
-// 
+//
 // Removed -
 //      - outdated code
 // Future -
@@ -71,7 +71,7 @@ bool beeped = 0;
 
 volatile byte LCD_screen = 1;
 byte LCD_screen_old = 0;
-byte num_LCD_screens = 7;
+byte num_LCD_screens = 8;
 
 int neo_delay = 100;
 unsigned long neo_time = 0;
@@ -175,7 +175,7 @@ enum which_car {
     GOJIRA,
     DEEP_THOUGHT,
     MELLENIAL_FALCON,
-    ROAD_RUNNER,                                                                                                                                 
+    ROAD_RUNNER,
     NIGHT_FURY,
     SERENITY,
     SHAI_HULUD
@@ -183,6 +183,12 @@ enum which_car {
 which_car car_name;
 
 
+//============== Compass offsets =========//
+// -C
+//========================================//
+float offsetX = 0.0;
+float offsetY = 0.0;
+float offsetZ = 0.0;
 //=============== Initialize Libraries ================//
 // Include Libraries, Setup objects, modules, etc.
 //=====================================================//
