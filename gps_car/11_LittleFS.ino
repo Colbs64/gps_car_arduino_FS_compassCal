@@ -10,59 +10,59 @@ int FS_readData(const char * path, char* out_str, size_t size) {
 
   // Testing if file exists
   if (file) {
-    // Serial.println("Open ok!");
+    Serial.println("Open ok!");
   } else {
-    // Serial.println("Open failed");
+    Serial.println("Open failed");
     // troubleshooting beep for fail open
     // beep();
     return 0;
   }
 
-
   char c;
-  char tempString[25];
+  int i = 0;
 
-  // Loops reads characters and then ends when file is stopped.
-  while (true) {
-    int len = strlen(tempString);
-    if (len+1 < sizeof(tempString)) {
-      tempString[len] = c;
-      tempString[len+1] = '\\0';
-    } else {
+  // looping through each characters and adding it to our output out_str
+  while(true) {
+    c = fgetc(file);
+    if (feof(file)) {
       break;
     }
-
-  if (strlen(tempString) + 1 <= size) {
-    strcpy(out_str, tempString);
+    else {
+      Serial.print(c);
+      out_str[i] = (char)c;
+    }
+    i++;
   }
+  // adding null terminator
+  out_str[i] = '\0';
 
   fclose(file);
-  // Serial.println(tempString);
+  Serial.println();
+  Serial.println(out_str);
 
   return 1;
-}
-}
 
+}
 
 // Writes data into a path. You need to give the path along with the data and sizeof(data), (MBED_LITTLEFS_FILE_PREFIX path, data, sizeof(data))
 //
 void FS_writeData(const char * path, const char * n, size_t nSize) {
-  // Serial.print("Writing file: ");
-  // Serial.println(path);
+  Serial.print("Writing file: ");
+  Serial.println(path);
 
   // Code was getting stuck here, turns out I forgot to mount the FS using myFS = new LittleFS_MBED();
 
   FILE *file = fopen(path, "w");
 
   if (file) {
-    // Serial.println("File opened");
+    Serial.println("File opened");
   } else {
-    // Serial.println("File failed to open");
+    Serial.println("File failed to open");
     return;
   }
 
   if (fwrite( (uint8_t *) n, 1, nSize, file )) {
-    // Serial.println("Writing OK");
+    Serial.println("Writing OK");
   } else {
     // Serial.println("Writing failed");
     // troubleshooting beep for fail
