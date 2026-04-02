@@ -128,9 +128,9 @@ void calibrate_compass() {
       lcd.print(",");
       lcd.print(offsetZ);
 
-      char finalBuffer[15];
+      char finalBuffer[25];
 
-    sprintf(finalBuffer, "%.2f:%.2f");
+    sprintf(finalBuffer, "%.2f:%.2f:%.2f", offsetX, offsetY, offsetZ);
       // writing the data that we just got
     FS_writeData(compass_calibration, finalBuffer, sizeof(finalBuffer));
       }     //
@@ -145,7 +145,7 @@ void calibrate_compass() {
 // "offsetX:offsetY", this parses both parts and assigns the offsets to the global variables.
 
 void retrieve_Compass_Data() {
-  char temp[15];
+  char temp[25];
 
   int correct = FS_readData(compass_calibration, temp, sizeof(temp));
   if (correct) {

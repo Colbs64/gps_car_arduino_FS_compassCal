@@ -16,11 +16,11 @@ int FS_readData(const char * path, char* out_str, size_t size) {
     // troubleshooting beep for fail open
     // beep();
     return 0;
-  }  
+  }
 
 
   char c;
-  char tempString[15];
+  char tempString[25];
 
   // Loops reads characters and then ends when file is stopped.
   while (true) {
@@ -45,8 +45,8 @@ int FS_readData(const char * path, char* out_str, size_t size) {
 
 
 // Writes data into a path. You need to give the path along with the data and sizeof(data), (MBED_LITTLEFS_FILE_PREFIX path, data, sizeof(data))
-// 
-void FS_writeData(const char * path, const char * n, size_t nSize) { 
+//
+void FS_writeData(const char * path, const char * n, size_t nSize) {
   // Serial.print("Writing file: ");
   // Serial.println(path);
 
