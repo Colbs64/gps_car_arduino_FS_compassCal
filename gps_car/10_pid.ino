@@ -8,9 +8,9 @@
 
 int esc_pid(int speed) {
 
-  long P, D;
-  static long I, prev_P;
-  float deltaT, mag_rpm, set_rpm;
+  // long P, D;
+  // static long I, prev_P;
+  static long prev_P;
   int throttle_command, pid_throttle;  // make variables "static" if you uncomment Integral Check
 
   // The following gains were found from testing on the dyno
@@ -22,11 +22,13 @@ int esc_pid(int speed) {
 
   const long max_I = (esc_full_forward - esc_default) / Ki;  // Determine the max I value for desired max influence
 
-  mag_rpm = calc_mag_rpm();
+  rpm = calc_mag_rpm();
+  rpm_speed = rpm / mph_to_rpm;  // for display purposes
   set_rpm = speed * mph_to_rpm;
 
-  P = set_rpm - mag_rpm;                // current error of mag_rpm
-  I = constrain(I + P, -max_I, max_I);  // summation of the error of mag_rpm
+
+  P = set_rpm - rpm;                    // current error of rpm
+  I = constrain(I + P, -max_I, max_I);  // summation of the error of rpm
   D = (P - prev_P);                     // difference between current and previous error scaled by deltaT
 
   pid_throttle = P * Kp + I * Ki + D * Kd;

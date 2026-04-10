@@ -34,7 +34,6 @@
 //=====================================================//
 
 #define D8 20  // Neo-pixel LED strip, might affect pin A6 - RP2040 doesn't work to just do "8" below
-
 // Digital pins, D-pins ...
 // Pins D0, D1 used for hardware serial..
 // TX = D0
@@ -65,13 +64,15 @@ int steering_trim_pin = A2;  // analog read of pot to correct steering of cars
 
 // Battery Voltage
 float volts_total = 7.5;  //probably doesn't matter, but initializing to make filter happy
+float volts_min = volts_total;
+float low_voltage_threshold = 7.2;
 bool LOW_BATTERY = 0;
 
 bool beeped = 0;
 
 volatile byte LCD_screen = 1;
 byte LCD_screen_old = 0;
-byte num_LCD_screens = 8;
+byte num_LCD_screens = 9;
 
 int neo_delay = 100;
 unsigned long neo_time = 0;
@@ -103,7 +104,7 @@ byte ind_gps = 0;         // This is the index to which of the gps lat/long poin
 float dist_to_target;     // changed from int, may need to re-layout screen
 int gps_heading;          // heading from current location to next GPS point
 int car_heading;          // heading of car - uses compass if going slow, possibly use GPS if going fast
-float avoid_heading;        // heading to avoid stuff - currently f(distance)  = 90*e^-0.15*dist
+float avoid_heading;      // heading to avoid stuff - currently f(distance)  = 90*e^-0.15*dist
 int desired_heading;      // combination of gps_heading and avoid_heading
 int heading_error;        // difference between where we want to be pointing and where we are pointing - want to be 0
 int compass_offset = 90;  // This is because the compass is mounted x° off straight
@@ -132,24 +133,27 @@ byte servo_large_circle = 105;
 int steering_trim;
 
 // Values range between ~1000 and ~2000
-int esc_default = 1500;        // 90;
-int esc_slow_grass = 1606;     // 109;
+int esc_default = 1500;     // 90;
+int esc_slow_grass = 1606;  // 109;
 // qj - int esc_slow_pavement = 1578;  // 104;
 int esc_slow_pavement = 104;
-int esc_fast_forward = 1778;   // 140;
-int esc_full_forward = 1944;   // 170;
-int esc_slow_reverse = 1444;   // 80;
-int esc_fast_reverse = 1222;   // 40;
-int esc_full_reverse = 1111;   // 20;
+int esc_fast_forward = 1778;  // 140;
+int esc_full_forward = 1944;  // 170;
+int esc_slow_reverse = 1444;  // 80;
+int esc_fast_reverse = 1222;  // 40;
+int esc_full_reverse = 1111;  // 20;
 int esc_stop = esc_default;
 
 // PID Controller Stuff...
 bool pid_trigger = 0;         // Pick between hard coded and pid
 volatile int hall_count = 0;  // count for number of times isr_hall() has been tripped in a cycle
-byte target_speed;
-float rpm = 0;
+float target_speed, rpm_speed;
+// float rpm = 0;
+int rpm = 0;
+int set_rpm;
 int pid_command = esc_command;
 int steer_command = servo_command;
+long P, I, D;
 
 //=============== Different cases in void loop ==============//
 // Change as needed -EH
@@ -164,7 +168,7 @@ enum Car_state {
 };
 Car_state currentState;
 
-//=============== different gps offset based on car ==============//
+//============= different compass offset based on car ============//
 // Change as needed -EH
 //================================================================//
 
@@ -198,6 +202,8 @@ float offsetZ = 0.0;
 
 // To use onboard rgb led, and A6, A7 WiFiNINA library is needed
 #include <WiFiNINA.h>
+
+#include "mbed.h" // Ensures we have access to the correct Mbed types
 
 // Setup Neo-pixel LED array
 #include <Adafruit_NeoPixel.h>

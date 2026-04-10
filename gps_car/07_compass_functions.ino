@@ -74,12 +74,12 @@ void calibrate_compass() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(F("Rotate car 360°"));
-      float xMin = 9999;
-      float zMin = 9999;
-      float yMin = 9999;
-      float yMax = -9999;
-      float xMax = -9999;
-      float zMax = -9999;
+      float xMin = 999;
+      float zMin = 999;
+      float yMin = 999;
+      float yMax = -999;
+      float xMax = -999;
+      float zMax = -999;
 
     if (hmc_flag)  //
     {
@@ -104,29 +104,6 @@ void calibrate_compass() {
       offsetX = (xMax + xMin) / 2;
       offsetY = (yMax + yMin) / 2;
       offsetZ = (zMax + zMin) / 2;
-      lcd.setCursor(0, 1);
-      lcd.print("x:");
-      lcd.print(xMin,1);
-      lcd.print(",");
-      lcd.print(xMax,1);
-      lcd.print(",");
-      lcd.print(offsetX);
-
-      lcd.setCursor(0, 2);
-      lcd.print("y:");
-      lcd.print(yMin,1);
-      lcd.print(",");
-      lcd.print(yMax,1);
-      lcd.print(",");
-      lcd.print(offsetY);
-
-      lcd.setCursor(0, 3);
-      lcd.print("z:");
-      lcd.print(zMin,1);
-      lcd.print(",");
-      lcd.print(zMax,1);
-      lcd.print(",");
-      lcd.print(offsetZ);
       }     //
     else  //
     {
