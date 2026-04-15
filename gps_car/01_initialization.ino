@@ -64,14 +64,14 @@ int steering_trim_pin = A2;  // analog read of pot to correct steering of cars
 
 // Battery Voltage
 float volts_total = 7.5;  //probably doesn't matter, but initializing to make filter happy
-float volts_min = volts_total;
-float low_voltage_threshold = 7.2;
+float volts_min = 10;  // initialize to larger than real value - make sure early on we just show true min, not artificial min
+float low_voltage_threshold = 7.0;  // This might-should be adjusted - trying to capture reasonable value.
 bool LOW_BATTERY = 0;
 
 bool beeped = 0;
 
 volatile byte LCD_screen = 1;
-byte LCD_screen_old = 0;
+volatile byte LCD_screen_old = 0;
 byte num_LCD_screens = 9;
 
 int neo_delay = 100;
@@ -145,15 +145,20 @@ int esc_full_reverse = 1111;  // 20;
 int esc_stop = esc_default;
 
 // PID Controller Stuff...
+int pid_freq = 20;  // in hz
+long pid_delay = 1000 / pid_freq;
+unsigned long pid_time = 0;
+
 bool pid_trigger = 0;         // Pick between hard coded and pid
 volatile int hall_count = 0;  // count for number of times isr_hall() has been tripped in a cycle
 float target_speed, rpm_speed;
 // float rpm = 0;
-int rpm = 0;
-int set_rpm;
+int rpm_encoder, rpm_wheel;
+int set_rpm_encoder;
 int pid_command = esc_command;
 int steer_command = servo_command;
 long P, I, D;
+
 
 //=============== Different cases in void loop ==============//
 // Change as needed -EH
@@ -168,23 +173,20 @@ enum Car_state {
 };
 Car_state currentState;
 
-//============= different compass offset based on car ============//
-// Change as needed -EH
-//================================================================//
+// //============= different LCD Screens ============//
+// enum lcd_screen {
+//     Title_Screen,
+//     Main_Screen,
+//     Position_Screen,
+//     Radio_Screen,
+//     Environment_Screen,
+//     Battery_Screen,
+//     Object_Avoid_Screen,
+//     Compass_Screen,
+//     PID_Screen
+//     };
 
-enum which_car {
-    DINO,
-    BUMBLEBEE,
-    JEEVES,
-    GOJIRA,
-    DEEP_THOUGHT,
-    MELLENIAL_FALCON,
-    ROAD_RUNNER,
-    NIGHT_FURY,
-    SERENITY,
-    SHAI_HULUD
-};
-which_car car_name;
+// lcd_screen LCD_screen = Title_Screen;
 
 
 //============== Compass offsets =========//

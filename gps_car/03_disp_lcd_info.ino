@@ -18,7 +18,6 @@ void disp_lcd_info() {
   //   LCD_screen = num_LCD_screens;
   // }
 
-
   if (LCD_screen_old != LCD_screen)  // if screen changes, clear old screen
   {
     lcd.clear();
@@ -330,9 +329,9 @@ void PID_Screen() {  // PID Information
   lcd.setCursor(0, 0);
   lcd.print(F("RPM:                "));
   lcd.setCursor(6, 0);
-  lcd.print(set_rpm);
+  lcd.print(set_rpm_encoder);
   lcd.print(F(" / "));
-  lcd.print(rpm);
+  lcd.print(rpm_encoder);
 
   lcd.setCursor(0, 1);
   lcd.print(F("SPEED:              "));

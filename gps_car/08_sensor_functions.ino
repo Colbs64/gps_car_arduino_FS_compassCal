@@ -31,18 +31,19 @@ void calc_batt_voltage() {
 
 
 
-// ************************   CALC_MAG_RPM   ************************//
+// ************************   CALC_RPM   ************************//
 
-// Calculates rpm of magnet wheel
-int calc_mag_rpm() {
+// Calculates rpm of encoder AND wheel
+void calc_rpm() {
   static unsigned long last_micros_rpm = 0;
   unsigned long micros_now = micros();
-  rpm = 6.0E7 * hall_count / (micros_now - last_micros_rpm) / 6.0;
+  // rpm_encoder = hall_count / 6 (to revolutions) / delta_t (in micro-seconds) * 1E6 (to seconds) * 60 (to minutes) -> rotations/minute (RPM)
+  rpm_encoder = 1.0E7 * hall_count / (micros_now - last_micros_rpm);
+  rpm_wheel = rpm_encoder / 2.6;  // gearbox has 2.6:1 reduction from slipper (encoder) and wheel
   // 6 reads\revolution, measured in micro-seconds...
   hall_count = 0;
   last_micros_rpm = micros_now;
-  return rpm;
-}  //End of calc_mag_rpm
+}  //End of calc_rpm
 
 
 

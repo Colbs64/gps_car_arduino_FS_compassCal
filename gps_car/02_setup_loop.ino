@@ -23,8 +23,8 @@ void setup() {
   pinMode(steering_servo_pin, OUTPUT);   // D10
   pinMode(green_car_pin, INPUT_PULLUP);  // D11
   // pinMode(hall_pin, INPUT_PULLUP);       // D12    WARNING!!!  For some reason, don't define this pinMode for the interrupt pin**
-  mbed::DigitalIn hall_pin_fix(p4, PullUp); // This is the equivalent of above line, but for the MBED pins
-  pinMode(buzzer_pin, OUTPUT);           // D13
+  mbed::DigitalIn hall_pin_fix(p4, PullUp);  // This is the equivalent of above line, but for the MBED pins
+  pinMode(buzzer_pin, OUTPUT);               // D13
 
   pinMode(batt_volt_pin, INPUT);      // A1
   pinMode(steering_trim_pin, INPUT);  // A2
@@ -224,7 +224,7 @@ void loop() {
   else if (dist_lidar < 3 && dist_lidar > 0) currentState = STATE_OBSTACLE_STOP;
 
   // // There is an obstacle not too close - go around
-  // else if (dist_lidar < 3 && dist_lidar > 0) currentState = STATE_OBSTACLE_AVOID;
+  // else if (dist_lidar < 20 && dist_lidar > 3) currentState = STATE_OBSTACLE_AVOID; - this is embedded into STATE_DRIVING ...
 
   // At target
   else if (fabs(dist_to_target) < min_dist_to_tgt) currentState = STATE_AT_TARGET;
@@ -347,6 +347,7 @@ void loop() {
 
         if (pid_trigger == 0)  // Pick between hard coded and pid - this is open loop / hard-coded
         {
+          calc_rpm();  // call this either here or in pid - that way the frequency is depedent on when PID gets called.
           int esc_forward = esc_slow_pavement;
           esc_command = esc_forward;  // go fairly slow
 
@@ -357,7 +358,8 @@ void loop() {
           else if (dist_to_target > 10) target_speed = 4;  // closer than 30m, but further than 10m
           else target_speed = 3;                           // closer than 10m
 
-          pid_command = esc_pid(target_speed);
+          if (millis() > pid_time)
+            pid_command = esc_pid(target_speed);  // internally calls calc_rpm() - note, this is at a different frequency than servo_update time
           pid_command = constrain(pid_command, esc_default, esc_full_forward);  // limit output of pid, to reasonable values
           esc_command = pid_command;
         }
@@ -390,4 +392,3 @@ void loop() {
   // neo_design(911);
   if (now > disp_time) disp_lcd_info();  // display info to LCD screen
 }  // End of loop
-
