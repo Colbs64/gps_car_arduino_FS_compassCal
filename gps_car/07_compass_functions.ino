@@ -104,9 +104,39 @@ void calibrate_compass() {
       offsetX = (xMax + xMin) / 2;
       offsetY = (yMax + yMin) / 2;
       offsetZ = (zMax + zMin) / 2;
+
+
+      char finalBuffer[32];
+
+    snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f", offsetX, offsetY);
+      // writing the data that we just got
+    FS_writeData(compass_calibration, finalBuffer, strlen(finalBuffer));
       }     //
     else  //
     {
-      compass_QMC.calibrate(); // THrowing errors saying that calibrate is not part of QMC -C
+      compass_QMC.calibrate();
     }
+}
+
+// ************************   RETRIEVE_COMPASS_DATA   ************************//
+// This function is used to retrieve the compass data from LittleFS on startup. The values are stored as
+// "offsetX:offsetY", this parses both parts and assigns the offsets to the global variables.
+// TODO: add zValue
+//
+void retrieve_Compass_Data() {
+  char temp[25];
+
+  int correct = FS_readData(compass_calibration, temp, sizeof(temp));
+  if (!correct) return;
+
+    char* xValue = strtok(temp, ":");
+    Serial.println(xValue);
+
+    char* yValue = strtok(NULL, ":");
+    Serial.println(yValue);
+
+    offsetX = atof(xValue);
+    // Serial.println(values[0]);
+    offsetY = atof(yValue);
+    // Serial.println(values[1]);
 }

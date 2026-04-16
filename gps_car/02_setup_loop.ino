@@ -138,6 +138,24 @@ void setup() {
 
   neo_design(0);  // turn neo_pixel off
 
+  // Mounting FS
+    myFS = new LittleFS_MBED();
+    if (myFS->init()) {
+      FS_init = true;
+      Serial.println("LittleFS mounted!");
+    } else {
+      Serial.println("LITTLEFS MOUNT FAILED");
+    }
+
+    if(FORCE_REFORMAT) { // removes files
+      remove(compass_calibration);
+    }
+
+    retrieve_Compass_Data();
+
+
+
+  // calibrate_compass();
   // Serial.println(F("end of setup"));
 }  // end of setup
 // ************************   END SETUP   ************************//
