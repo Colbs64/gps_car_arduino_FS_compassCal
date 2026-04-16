@@ -18,7 +18,6 @@ void disp_lcd_info() {
   //   LCD_screen = num_LCD_screens;
   // }
 
-
   if (LCD_screen_old != LCD_screen)  // if screen changes, clear old screen
   {
     lcd.clear();
@@ -48,7 +47,10 @@ void disp_lcd_info() {
       Object_Avoid_Screen();
       break;
     case 8:
-      compass_Screen();
+      Compass_Screen();
+      break;
+    case 9:
+      PID_Screen();
       break;
     default:
       lcd.setCursor(0, 1);
@@ -246,10 +248,13 @@ void Battery_Screen() {  // Battery Information
   lcd.print(F("   Battery Status   "));
   if (LOW_BATTERY) {
     lcd.setCursor(0, 1);
-    lcd.print("WARNING!!!");
-    lcd.setCursor(0, 2);
-    lcd.print("Low Battery!!!");
+    lcd.print("WARNING:Low Battery!");
   }
+  lcd.setCursor(0, 2);
+  lcd.print(F("Min Batt: "));
+  lcd.print(volts_min);
+  lcd.print(F(" V"));
+
   lcd.setCursor(0, 3);
   lcd.print(F("Battery : "));
   lcd.print(volts_total);
@@ -287,7 +292,7 @@ void Object_Avoid_Screen() {  // Radio Information
   lcd.print(heading_error);
 }
 
-void compass_Screen() {
+void Compass_Screen() {
   // 01234567890123456789
   //0      Compass Info
   //1
@@ -295,23 +300,61 @@ void compass_Screen() {
     calibrate_compass();
   }
   lcd.setCursor(0, 0);
-  lcd.print(F("   compass info   "));
+  lcd.print(F("compass:   Hdg:     "));
+  lcd.setCursor(15, 0);
+  lcd.print(car_heading);
   lcd.setCursor(0, 1);
   if ((offsetX == 0 && offsetY == 0)) {
     lcd.print(F("Press encode"));
     lcd.setCursor(0, 2);
     lcd.print(F("To calibrate"));
   } else {
-      lcd.print(F("offsetX: "));
-      lcd.print(offsetX);
-      lcd.setCursor(0, 2);
-      lcd.print(F("offsetY: "));
-      lcd.print(offsetY);
-      lcd.setCursor(0, 3);
-      lcd.print(F("offsetZ: "));
-      lcd.print(offsetZ);
+    lcd.print(F("offsetX: "));
+    lcd.print(offsetX);
+    lcd.setCursor(0, 2);
+    lcd.print(F("offsetY: "));
+    lcd.print(offsetY);
+    lcd.setCursor(0, 3);
+    lcd.print(F("offsetZ: "));
+    lcd.print(offsetZ);
   }
 }
+
+void PID_Screen() {  // PID Information
+  //   01234567890123456789
+  //0  RPM:  #### / ####
+  //1  SPEED: #.## / #.##
+  //2  ESC: ####  P: #####
+  //3  I: #####   D: #####
+  lcd.setCursor(0, 0);
+  lcd.print(F("RPM:                "));
+  lcd.setCursor(6, 0);
+  lcd.print(set_rpm_encoder);
+  lcd.print(F(" / "));
+  lcd.print(rpm_encoder);
+
+  lcd.setCursor(0, 1);
+  lcd.print(F("SPEED:              "));
+  lcd.setCursor(7, 1);
+  lcd.print(target_speed);
+  lcd.print(F(" / "));
+  lcd.print(rpm_speed);
+
+  lcd.setCursor(0, 2);
+  lcd.print(F("ESC:       P:       "));
+  lcd.setCursor(5, 2);
+  lcd.print(esc_command);
+  lcd.setCursor(14, 2);
+  lcd.print(P);
+
+  lcd.setCursor(0, 3);
+  lcd.print(F("I:         D:       "));
+  lcd.setCursor(3, 3);
+  lcd.print(I);
+  lcd.setCursor(14, 3);
+  lcd.print(D);
+}
+
 
 void blink_acquiring() {
   static bool acq_disp_flag = 0;

@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////////////////////////////
 void setup() {
   Serial1.begin(9600);
-  WiFi.lowPowerMode();
+  // WiFi.lowPowerMode();
 
   // Serial.begin(9600);
   // Serial.println(F("Starting Setup"));
@@ -22,11 +22,14 @@ void setup() {
   pinMode(esc_servo_pin, OUTPUT);        // D9
   pinMode(steering_servo_pin, OUTPUT);   // D10
   pinMode(green_car_pin, INPUT_PULLUP);  // D11
-  pinMode(hall_pin, INPUT);              // D12
-  pinMode(buzzer_pin, OUTPUT);           // D13
+  // pinMode(hall_pin, INPUT_PULLUP);       // D12    WARNING!!!  For some reason, don't define this pinMode for the interrupt pin**
+  mbed::DigitalIn hall_pin_fix(p4, PullUp);  // This is the equivalent of above line, but for the MBED pins
+  pinMode(buzzer_pin, OUTPUT);               // D13
 
   pinMode(batt_volt_pin, INPUT);      // A1
   pinMode(steering_trim_pin, INPUT);  // A2
+
+  delay(10);
 
   attachInterrupt(digitalPinToInterrupt(Clk), isr_encoder, FALLING);    //D2
   attachInterrupt(digitalPinToInterrupt(hall_pin), isr_hall, FALLING);  //D12
@@ -66,12 +69,13 @@ void setup() {
   // Servo Setup
   steering_servo.attach(steering_servo_pin);
   esc_servo.attach(esc_servo_pin);
+  esc_servo.write(esc_stop);
   delay(250);
 
 
   // Fix Steering offsets
 
-  ///////////////////////////////////////////////////  WARNING  //////////////////////////////////////
+  //////////////////////////////////////  WARNING  ///////////////////////////////////////////////////
   //
   // For this to make sense, you MUST run it on each car individually to set the pot, then leave the
   // pot in that same position from then on.  If it gets moved, or if it is not run, it will make
@@ -167,6 +171,9 @@ void setup() {
 // ************************   BEGIN LOOP   ************************//
 void loop() {
 
+  // Serial.println(digitalRead(hall_pin));
+
+
   // long press encoder button (> 2 sec) to enter steering adjust mode
   unsigned long now = millis();  // so I don't keep calling millis for the next few logical steps...
   static long last_Sw = now;
@@ -203,14 +210,12 @@ void loop() {
   // get distance from LIDAR sensor
   get_lidar_data();
 
-  if (dist_lidar > 20 || dist_lidar < 3)
-  {
+  if (dist_lidar > 20 || dist_lidar < 3) {
     // low pass filter - slowly decay it over time.  alpha likely needs to be updated.
     float alpha = 0.005;
-    avoid_heading = (1-alpha)*avoid_heading;
+    avoid_heading = (1 - alpha) * avoid_heading;
     if (avoid_heading < 3) avoid_heading = 0;
-  }
-  else avoid_heading = 90 * exp(-0.15 * dist_lidar);
+  } else avoid_heading = 90 * exp(-0.145 * dist_lidar);  // curve fit reasonable data to find equation
 
   desired_heading = gps_heading + int(avoid_heading);
 
@@ -237,7 +242,7 @@ void loop() {
   else if (dist_lidar < 3 && dist_lidar > 0) currentState = STATE_OBSTACLE_STOP;
 
   // // There is an obstacle not too close - go around
-  // else if (dist_lidar < 3 && dist_lidar > 0) currentState = STATE_OBSTACLE_AVOID;
+  // else if (dist_lidar < 20 && dist_lidar > 3) currentState = STATE_OBSTACLE_AVOID; - this is embedded into STATE_DRIVING ...
 
   // At target
   else if (fabs(dist_to_target) < min_dist_to_tgt) currentState = STATE_AT_TARGET;
@@ -245,14 +250,28 @@ void loop() {
   // Driving
   else currentState = STATE_DRIVING;
 
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //  For testing!!!  Don't leave these!!!!
+  // currentState = STATE_DRIVING;
+  // armed = 1;
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
   if (millis() > servo_write_time) {
     switch (currentState) {
 
-      case STATE_LOW_BATTERY:
+      case STATE_NO_RPM_READING:
         esc_servo.write(esc_stop);
-        steering_servo.write(servo_straight);
-        digitalWrite(buzzer_pin,1);   // just beep!
-        LCD_screen = 6;  // this is the battery screen - force it to display what is happening
+        servo_command = servo_straight;
+        stop_no_rpm_reading();
+        break;
+
+      case STATE_LOW_BATTERY:
+        esc_command = esc_stop;
+        servo_command = servo_straight;
+        digitalWrite(buzzer_pin, 1);  // just beep!
+        LCD_screen = 6;               // this is the battery screen - force it to display what is happening
         break;
 
 
@@ -352,17 +371,19 @@ void loop() {
 
         if (pid_trigger == 0)  // Pick between hard coded and pid - this is open loop / hard-coded
         {
+          calc_rpm();  // call this either here or in pid - that way the frequency is depedent on when PID gets called.
           int esc_forward = esc_slow_pavement;
           esc_command = esc_forward;  // go fairly slow
 
         }     //
         else  // Use PID to determine throttle...
         {
-          if (dist_to_target > 30) target_speed = 6;       // more than 30 m away, go faster
-          else if (dist_to_target > 10) target_speed = 5;  // closer than 30m, but further than 10m
-          else target_speed = 3.5;                         // closer than 10m
+          if (dist_to_target > 30) target_speed = 5;       // more than 30 m away, go faster
+          else if (dist_to_target > 10) target_speed = 4;  // closer than 30m, but further than 10m
+          else target_speed = 3;                           // closer than 10m
 
-          pid_command = esc_pid(target_speed);
+          if (millis() > pid_time)
+            pid_command = esc_pid(target_speed);  // internally calls calc_rpm() - note, this is at a different frequency than servo_update time
           pid_command = constrain(pid_command, esc_default, esc_full_forward);  // limit output of pid, to reasonable values
           esc_command = pid_command;
         }
@@ -395,180 +416,3 @@ void loop() {
   // neo_design(911);
   if (now > disp_time) disp_lcd_info();  // display info to LCD screen
 }  // End of loop
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // check if have GPS lock yet (or if it has been too long since update) - if not, let user know
-// //  if (!gps.location.isValid())
-// if (!gps.location.isValid() || gps.location.age() > 1250) {
-//   flash(LEDR, 250, 250, 255, 0, R);  // flash red lights until GPS acquired
-//   // set wheels straight, servo stopped
-//   steering_servo.write(servo_straight);
-//   esc_servo.write(esc_stop);
-// }  //
-// else  // have (current) gps
-// {
-//   if (beeped != 1) beep();  // beep first time it acquires GPS
-
-//   //  update servo command every so often ...
-//   if (millis() > servo_write_time) {
-
-//     if (fabs(dist_to_target) < min_dist_to_tgt)  // check if we're there! Are we close enough?
-//     {
-//       ind_gps++;
-
-//       if (!armed)  // 1st target - arm after "getting in the box"
-//       {
-//         armed = 1;
-//         wag_servo(150);  // arming warning ...
-//         countdown();     // blink, beep, display countdown ...
-//       }                  //
-//       else               // Already armed, or in other words, going for it and found target (targets #2 - end) ...
-//       {
-//         esc_servo.write(esc_full_reverse);  // Brake at target
-
-//         wag_servo(servo_wag_speed, delay_at_target);  // Signal at target
-
-//         if (ind_gps == num_gps_tgts)  // This means it got to the last one, so STOP!!!!
-//         {
-//           lcd.begin(20, 4);
-//           lcd.clear();
-//           lcd.setCursor(0, 1);
-//           lcd.print(F("COURSE COMPLETE!!!"));
-
-//           esc_servo.write(esc_stop);
-//           wag_servo(100);
-
-//           while (1)  // make sure you never go back!!!
-//           {
-//             flash(LEDR, random(50, 250), random(50, 250), 0, 255, R);
-//             flash(LEDG, random(50, 250), random(50, 250), 0, 255, G);
-//             flash(LEDB, random(50, 250), random(50, 250), 0, 255, B);
-//             if (millis() > neo_time) {
-//               neo_design(1);
-//             }
-//             // beep();
-//             delay(5000);
-//           }
-//         }
-//         // if not at last one ...
-//         digitalWrite(LEDR, LOW);
-//         digitalWrite(LEDG, LOW);
-//         for (int i = 0; i < 10; i++)  // flash blue when at target
-//         {
-//           digitalWrite(LEDB, HIGH);
-//           delay(100);
-//           digitalWrite(LEDB, LOW);
-//           delay(100);
-//         }  // end flash blue lights
-
-//         servo_command = servo_straight;
-//         esc_command = esc_stop;
-
-//       }  // end Armed / not armed on finding target
-
-//     }                                           // end within 2m of target ...
-//     else if (dist_lidar < 3 && dist_lidar > 0)  // Something is in the way...
-//     {                                           // if we came close to something, 1st hit the brakes for 2 seconds, then just set to 0 ...
-//       int flash_on;
-//       servo_command = servo_straight;
-//       if (brake_time + 2000 > millis()) {
-//         esc_command = esc_full_reverse;
-//         flash_on = 30;  // bright flashing to tell just sittin' there
-//       } else {
-//         esc_command = esc_stop;
-//         flash_on = 255;  // dim flashing to tell under brakes
-//       }
-//       // maybe change to neo_pixel
-//       flash(LEDR, 250, 150, 0, flash_on, R);  // flash lights on/off in Purple (red and blue)
-//       // flash(LEDG, 250, 150, 0, flash_on, G);
-//       digitalWrite(LEDG, LOW);
-//       flash(LEDB, 250, 150, 0, flash_on, B);
-
-//       // prev_esc_Time = micros();
-//       // prev_servo_Time = millis();
-
-//     }     //
-//     else  // Not close to target, nothing in the way, so steer to gps target, lights on white
-//     {
-//       brake_time = millis();  // update brake time
-
-//       int kp = 1;  // default to gain of 1 for GPS Car, primarily to set direction if using old test platform...
-//       steer_command = constrain(servo_straight - kp * heading_error, servo_left, servo_right);
-//       servo_command = steer_command;
-
-//       if (!armed) rpm = calc_mag_rpm();  // calc rpm while not armed - otherwise called in PID function
-//       else                               // determine throttle command, either using PID or Open Loop
-//       {
-//         if (pid_trigger == 0)  // Pick between hard coded and pid - this is open loop / hard-coded
-//         {
-//           int esc_forward = esc_slow_pavement;
-//           //  set esc command based on how far away from target...
-//           esc_command = esc_forward;  // go fairly slow
-//           // if (dist_to_target > 30) {
-//           //   esc_command = esc_forward + .1 * esc_default;  // more than 30m away, go faster than normal
-//           // } else if (dist_to_target > 10) {
-//           //   esc_command = esc_forward + .05 * esc_default;  // more than 10m away, go a bit faster than normal
-//           // }
-
-//           // if we are going too fast, slow back down...
-//           // if (gps.speed.mph() > 7.5) {
-//           //   esc_command = esc_forward;
-//           // }
-//         }     //
-//         else  // Use PID to determine throttle...
-//         {
-//           if (dist_to_target > 30) target_speed = 6.5;     // more than 30 m away, go faster
-//           else if (dist_to_target > 10) target_speed = 5;  // closer than 30m, but further than 10m
-//           else target_speed = 4;                           // closer than 10m
-
-//           pid_command = esc_pid(target_speed);
-
-//           pid_command = constrain(pid_command, esc_default, esc_full_forward);  // limit output of pid, to reasonable values
-//           esc_command = pid_command;
-//         }
-//       }
-
-//       digitalWrite(LEDR, HIGH);
-//       digitalWrite(LEDG, HIGH);
-//       digitalWrite(LEDB, HIGH);
-
-//       //  beep progressively quicker as we get closer - this may not work given the delay of how often this is called ...
-//       long beep_delay = constrain(map(dist_to_target, 0, 40, 50, 5000), 0, 5000);  // beep faster as it gets closer to the target
-//       unsigned long now = millis();
-//       static unsigned long beep_on = 0;
-//       static unsigned long beep_off;
-//       if (now > beep_on) {
-//         beep_on = now + beep_delay;
-//         digitalWrite(buzzer_pin, 1);
-//         beep_off = now + 40;  // the 40 is how long it beeps every time, the "beep_delay" is how long it waits between beeps
-//       }
-//       if (now > beep_off) digitalWrite(buzzer_pin, 0);
-//     }
-
-//     steering_servo.write(servo_command);
-//     esc_servo.write(esc_command);
-//     servo_write_time = servo_write_time + servo_write_delay;
-//   }  // end servo_write_time
-// }  // end have gps
-
-
-// now = millis();
-// // if (now > neo_time) neo_design(1);
-// neo_design(2000);
-// // neo_design(911);
-// if (now > disp_time) disp_lcd_info();  // display info to LCD screen
-
-// }  // end of loop
-//    // ************************   END LOOP   ***************

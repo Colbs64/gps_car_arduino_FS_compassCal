@@ -8,26 +8,30 @@
 
 int esc_pid(int speed) {
 
-  long P, D;
-  static long I, prev_P;
-  float deltaT, mag_rpm, set_rpm;
+  pid_time += pid_delay;
+
+  static long prev_P;
   int throttle_command, pid_throttle;  // make variables "static" if you uncomment Integral Check
 
   // The following gains were found from testing on the dyno
-  const float Kp = 0.27;
-  const float Ki = 0.07;
-  const float Kd = 0.25;
+  const float Kp = 0.45;
+  const float Ki = 0.02;
+  const float Kd = 0.10;
 
-  const float mph_to_rpm = 175.36766;  // 5280 ft\mile * 12 in\ft * 2.6 rev_enc\rev_wheel / 15.65625 in\rev_wheel / 60 minutes\hr
+  const float MPH_TO_RPM_ENCODER = 67.2;  // 5280 ft\mile * 12 in\ft / (pi*5)in\rev_wheel / 60 minutes\hr
 
   const long max_I = (esc_full_forward - esc_default) / Ki;  // Determine the max I value for desired max influence
 
-  mag_rpm = calc_mag_rpm();
-  set_rpm = speed * mph_to_rpm;
+  // rpm = calc_mag_rpm();
+  calc_rpm();
+  rpm_speed = rpm_encoder / MPH_TO_RPM_ENCODER;  // for display purposes
+  set_rpm_encoder = speed * MPH_TO_RPM_ENCODER;  // this is the Encoder RPM we are trying to achieve
 
-  P = set_rpm - mag_rpm;                // current error of mag_rpm
-  I = constrain(I + P, -max_I, max_I);  // summation of the error of mag_rpm
-  D = (P - prev_P);                     // difference between current and previous error scaled by deltaT
+  // This code starts a 1 second countdown after the car is armed to shut it down if the encoder is not working.
+  // check_encoder();
+    P = set_rpm_encoder - rpm_encoder;  // current error of rpm
+  I = constrain(I + P, -max_I, max_I);  // summation of the error of rpm
+  D = (P - prev_P);                     // difference between current and previous error
 
   pid_throttle = P * Kp + I * Ki + D * Kd;
 
@@ -37,4 +41,36 @@ int esc_pid(int speed) {
 
 
   return throttle_command;
+}
+
+
+// qj - timer_start not defined yet...
+
+// void check_encoder() {
+//   if (rpm_encoder == 0 && armed) {
+//     if (!timer_start) {
+//       no_encoder_countdown = millis();
+//       timer_start = true;
+//       // if it's happening after 1 second we will shut down the car.
+//     }  //
+//     else if (millis() - no_encoder_countdown > 1000) {
+//       currentState = STATE_NO_RPM_READING;
+//     }
+//   }     //
+//   else  //
+//   {
+//     timer_start = false;
+//   }
+// }
+
+void stop_no_rpm_reading() {
+  lcd.clear();
+  while (1) {
+    lcd.setCursor(0, 0);
+    lcd.print(F("No encoder"));
+    lcd.setCursor(0, 1);
+    lcd.print(F("Check Wiring"));
+
+    delay(500);
+  }
 }

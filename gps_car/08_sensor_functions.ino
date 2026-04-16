@@ -15,31 +15,35 @@ void calc_batt_voltage() {
   calc_batt_time += calc_batt_delay;
   const int R1 = 470;
   const int R2 = 150;
-  float tot_batt_scale = 1.01;   // Emperically measured value
-  analogRead(batt_volt_pin);  // quick "primer" read to get it moving since we have extremely high resistors (see chatGPT)
+  float tot_batt_scale = 1.01;  // Emperically measured value
+  analogRead(batt_volt_pin);    // quick "primer" read to get it moving since we have extremely high resistors (see chatGPT)
   float tmp1 = analogRead(batt_volt_pin) * 3.3 / 1024.0;
-  // simple low-pass filter - simply average current reading with previous reading
-  float alpha = 0.5;
-  volts_total = alpha * volts_total + (1-alpha) * tmp1 * (R1 + R2) / R2 * tot_batt_scale;
+  
+  // simple low-pass filter - simply combine current reading with previous reading
+  float alpha = 0.9;
+  volts_total = alpha * volts_total + (1 - alpha) * tmp1 * (R1 + R2) / R2 * tot_batt_scale;
+  volts_min = min(volts_total, volts_min);
 
-  if (volts_total < 7) LOW_BATTERY = 1;
+  LOW_BATTERY = 0;
+  if (volts_total < low_voltage_threshold) LOW_BATTERY = 1;
 
 }  //End of calc_batt_voltage
 
 
 
-// ************************   CALC_MAG_RPM   ************************//
+// ************************   CALC_RPM   ************************//
 
-// Calculates rpm of magnet wheel
-float calc_mag_rpm() {
+// Calculates rpm of encoder AND wheel
+void calc_rpm() {
   static unsigned long last_micros_rpm = 0;
   unsigned long micros_now = micros();
-  rpm = 6.0E7 * hall_count / (micros_now - last_micros_rpm) / 6;
+  // rpm_encoder = hall_count / 6 (to revolutions) / delta_t (in micro-seconds) * 1E6 (to seconds) * 60 (to minutes) -> rotations/minute (RPM)
+  rpm_encoder = 1.0E7 * hall_count / (micros_now - last_micros_rpm);
+  rpm_wheel = rpm_encoder / 2.6;  // gearbox has 2.6:1 reduction from slipper (encoder) and wheel
   // 6 reads\revolution, measured in micro-seconds...
   hall_count = 0;
   last_micros_rpm = micros_now;
-  return rpm;
-}  //End of calc_mag_rpm
+}  //End of calc_rpm
 
 
 
@@ -59,21 +63,21 @@ void get_lidar_data() {
 // Sets the steering trim of the cars
 void set_steering(int range) {
   long now = millis();
-    // static bool isclear = 0;
-    // if (!isclear) lcd.clear(), isclear = 1;
-    lcd.clear();
-  while (millis() < now + servo_trim_time*1000) {
+  // static bool isclear = 0;
+  // if (!isclear) lcd.clear(), isclear = 1;
+  lcd.clear();
+  while (millis() < now + servo_trim_time * 1000) {
     int t_minus = servo_trim_time - (millis() - now) / 1000;
     lcd.setCursor(0, 0);
     lcd.print(F("Returning in        "));
-    lcd.setCursor(14,0);
+    lcd.setCursor(14, 0);
     lcd.print(t_minus);
     lcd.print(F(" sec"));
     lcd.setCursor(2, 1);
     lcd.print(F("Set Steering Pot"));
     // Serial.println(F("Set Steering Pot"));
     steering_trim = map(analogRead(steering_trim_pin), 0, 1023, -range, range);  // potentially change to pwm values 1000 - 2000
-    servo_straight = 90 + steering_trim;  // Note:  Can't be servo_straight = servo_straight + steering_trim for this step
+    servo_straight = 90 + steering_trim;                                         // Note:  Can't be servo_straight = servo_straight + steering_trim for this step
     servo_left = 55 + steering_trim;
     servo_right = 125 + steering_trim;
     steering_servo.write(servo_straight);
