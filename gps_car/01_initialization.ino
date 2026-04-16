@@ -63,7 +63,7 @@ int steering_trim_pin = A2;  // analog read of pot to correct steering of cars
 //=====================================================//
 
 // Battery Voltage
-float volts_total = 7.5;  //probably doesn't matter, but initializing to make filter happy
+float volts_total = 10;  //probably doesn't matter, but initializing to make filter happy
 float volts_min = 10;  // initialize to larger than real value - make sure early on we just show true min, not artificial min
 float low_voltage_threshold = 7.0;  // This might-should be adjusted - trying to capture reasonable value.
 bool LOW_BATTERY = 0;
@@ -149,7 +149,7 @@ int pid_freq = 100;  // in hz
 long pid_delay = 1000 / pid_freq;
 unsigned long pid_time = 0;
 
-bool pid_trigger = 0;         // Pick between hard coded and pid
+bool pid_flag = 1;         // Pick between hard coded and pid
 volatile int hall_count = 0;  // count for number of times isr_hall() has been tripped in a cycle
 float target_speed, rpm_speed;
 // float rpm = 0;

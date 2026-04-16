@@ -18,9 +18,9 @@ void calc_batt_voltage() {
   float tot_batt_scale = 1.01;  // Emperically measured value
   analogRead(batt_volt_pin);    // quick "primer" read to get it moving since we have extremely high resistors (see chatGPT)
   float tmp1 = analogRead(batt_volt_pin) * 3.3 / 1024.0;
-  
+
   // simple low-pass filter - simply combine current reading with previous reading
-  float alpha = 0.9;
+  float alpha = 0.95;
   volts_total = alpha * volts_total + (1 - alpha) * tmp1 * (R1 + R2) / R2 * tot_batt_scale;
   volts_min = min(volts_total, volts_min);
 
@@ -56,6 +56,36 @@ void get_lidar_data() {
   dist_lidar = float(dist_cm) / 2.54 / 12.0;  // Returns the distance in ft
 }  //End of get_lidar_data
 
+
+// ************************   CALC_AVOIDCANCE_ANGLE   ************************//
+
+float calc_avoidance_angle() {
+  // Note:  avoid_heading should be an integer, but to make filter work MUST be a floating point
+  // if something is in front, determine angle to avoid object, and decay at an appropriate rate to avoid it
+  static int avoid_dir = 1;
+  static bool set_dir_flag = 0;
+  if (dist_lidar > 10 || dist_lidar < 3)  // there is nothing in front, so either decay angle, or just do nothing
+  {
+    // low pass filter - slowly decay it over time.  alpha determined by experiment, but is up for debate
+    float alpha = 0.005;
+    avoid_heading = (1 - alpha) * avoid_heading;
+    if (abs(avoid_heading) < 3)  //
+    {
+      avoid_heading = 0;
+      if (set_dir_flag)  //
+      {
+        avoid_dir = -avoid_dir;
+        set_dir_flag = 0;
+      }
+    }
+  }     //
+  else  // Something is in the way - determine angle to drive around
+  {
+    set_dir_flag = 1;
+    avoid_heading = avoid_dir * 90 * exp(-0.145 * dist_lidar);  // curve fit reasonable data to find equation
+  }
+  return avoid_heading;
+}
 
 
 // ************************   SET_STEERING   ************************//

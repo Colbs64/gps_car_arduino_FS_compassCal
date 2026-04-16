@@ -139,19 +139,19 @@ void setup() {
   neo_design(0);  // turn neo_pixel off
 
   // Mounting FS
-    myFS = new LittleFS_MBED();
-    if (myFS->init()) {
-      FS_init = true;
-      Serial.println("LittleFS mounted!");
-    } else {
-      Serial.println("LITTLEFS MOUNT FAILED");
-    }
+  myFS = new LittleFS_MBED();
+  if (myFS->init()) {
+    FS_init = true;
+    Serial.println("LittleFS mounted!");
+  } else {
+    Serial.println("LITTLEFS MOUNT FAILED");
+  }
 
-    if(FORCE_REFORMAT) { // removes files
-      remove(compass_calibration);
-    }
+  if (FORCE_REFORMAT) {  // removes files
+    remove(compass_calibration);
+  }
 
-    retrieve_Compass_Data();
+  retrieve_Compass_Data();
 
 
 
@@ -210,12 +210,7 @@ void loop() {
   // get distance from LIDAR sensor
   get_lidar_data();
 
-  if (dist_lidar > 20 || dist_lidar < 3) {
-    // low pass filter - slowly decay it over time.  alpha likely needs to be updated.
-    float alpha = 0.005;
-    avoid_heading = (1 - alpha) * avoid_heading;
-    if (avoid_heading < 3) avoid_heading = 0;
-  } else avoid_heading = 90 * exp(-0.145 * dist_lidar);  // curve fit reasonable data to find equation
+  avoid_heading = calc_avoidance_angle();
 
   desired_heading = gps_heading + int(avoid_heading);
 
@@ -241,9 +236,6 @@ void loop() {
   // There is an obstacle too close - stop!
   else if (dist_lidar < 3 && dist_lidar > 0) currentState = STATE_OBSTACLE_STOP;
 
-  // // There is an obstacle not too close - go around
-  // else if (dist_lidar < 20 && dist_lidar > 3) currentState = STATE_OBSTACLE_AVOID; - this is embedded into STATE_DRIVING ...
-
   // At target
   else if (fabs(dist_to_target) < min_dist_to_tgt) currentState = STATE_AT_TARGET;
 
@@ -251,18 +243,11 @@ void loop() {
   else currentState = STATE_DRIVING;
 
 
-  ///////////////////////////////////////////////////////////////////////////////
-  //  For testing!!!  Don't leave these!!!!
-  // currentState = STATE_DRIVING;
-  // armed = 1;
-  //
-  ///////////////////////////////////////////////////////////////////////////////
-
   if (millis() > servo_write_time) {
     switch (currentState) {
 
       case STATE_NO_RPM_READING:
-        esc_servo.write(esc_stop);
+        esc_command = esc_stop;
         servo_command = servo_straight;
         stop_no_rpm_reading();
         break;
@@ -273,7 +258,6 @@ void loop() {
         digitalWrite(buzzer_pin, 1);  // just beep!
         LCD_screen = 6;               // this is the battery screen - force it to display what is happening
         break;
-
 
       case STATE_NO_GPS:
         flash(LEDR, 250, 250, 255, 0, R);  // flash red lights until GPS acquired
@@ -300,8 +284,6 @@ void loop() {
         digitalWrite(LEDG, LOW);
         flash(LEDB, 250, 150, 0, flash_on, B);
 
-        // prev_esc_Time = micros();
-        // prev_servo_Time = millis();
         break;
 
 
@@ -339,8 +321,7 @@ void loop() {
               if (millis() > neo_time) {
                 neo_design(1);
               }
-              // beep();
-              delay(5000);
+              delay(100);
             }
           }
           // if not at last one ...
@@ -369,7 +350,7 @@ void loop() {
         steer_command = constrain(servo_straight - kp * heading_error, servo_left, servo_right);
         servo_command = steer_command;
 
-        if (pid_trigger == 0)  // Pick between hard coded and pid - this is open loop / hard-coded
+        if (pid_flag == 0)  // Pick between hard coded and pid - this is open loop / hard-coded
         {
           calc_rpm();  // call this either here or in pid - that way the frequency is depedent on when PID gets called.
           int esc_forward = esc_slow_pavement;
@@ -378,12 +359,12 @@ void loop() {
         }     //
         else  // Use PID to determine throttle...
         {
-          if (dist_to_target > 30) target_speed = 5;       // more than 30 m away, go faster
+          if (dist_to_target > 30) target_speed = 4.5;       // more than 30 m away, go faster
           else if (dist_to_target > 10) target_speed = 4;  // closer than 30m, but further than 10m
-          else target_speed = 3;                           // closer than 10m
+          else target_speed = 3.5;                           // closer than 10m
 
           if (millis() > pid_time)
-            pid_command = esc_pid(target_speed);  // internally calls calc_rpm() - note, this is at a different frequency than servo_update time
+            pid_command = esc_pid(target_speed);                                // internally calls calc_rpm() - note, this is at a different frequency than servo_update time
           pid_command = constrain(pid_command, esc_default, esc_full_forward);  // limit output of pid, to reasonable values
           esc_command = pid_command;
         }
