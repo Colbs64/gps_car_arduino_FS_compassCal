@@ -56,18 +56,17 @@ int calc_mag_rpm() {
 // C -   Just to clarify, The reason that we don't divide 6.0 or do 6E7 for the direct conversion from microseconds to
 // mins is because
   int rpm = 1.0E7 * hall_count / deltaT;
-
+  rpm_wheel = rpm / 2.6;
   // LOW PASS FILTER
-  float alpha = 0.9; // filter setting, trusting 90% of what our rpm is reading
-  float rpm_filtered = rpm_filtered + alpha * (rpm - rpm_filtered);
-  
+  // float alpha = 0.9; // filter setting, trusting 90% of what our rpm is reading
+  // float rpm_filtered = rpm_filtered + alpha * (rpm - rpm_filtered);
   // 6 reads\revolution, measured in micro-seconds...
   // float gear_ratio = 2.6;
   // int rpm_wheel = rpm_magnet / gear_ratio;
   // hall_count_max = max(hall_count_max, hall_count);
   hall_count = 0;
   last_micros_rpm = micros_now;
-  return rpm_filtered;
+  return rpm;
 }  //End of calc_mag_rpm
 
 

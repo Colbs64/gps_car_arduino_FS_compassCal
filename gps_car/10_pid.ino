@@ -9,10 +9,11 @@
 int esc_pid(int speed) {
   static unsigned long last_PID;
 
-  float dt = (millis() - last_PID) / 1000.0;
+  float dt = 0.02; // set for a frequency of 20hz
   pid_time += pid_delay;
 
-  static long prev_P;
+  // static long prev_P;
+  static float prev_P_filtered = 0.0;
   int throttle_command, pid_throttle;  // make variables "static" if you uncomment Integral Check
 
   // The following gains were found from testing on the dyno
@@ -34,28 +35,28 @@ int esc_pid(int speed) {
   //     // if it's happening after 1 second we will shut down the car.
   //   } else if(millis() - no_encoder_countdown > 1000) {
   //     currentState = STATE_NO_RPM_READING;
-  //   } 
+  //   }
   // } else {
   //     timer_start = false;
-      
+
   // }
-  // rpm_wheel = rpm_encoder / MPH_TO_RPM_ENCODER;  // for display purposes
-  rpm_wheel = rpm_encoder / 2.6;
   set_rpm_encoder = speed * MPH_TO_RPM_ENCODER;  // this is the Encoder RPM we are trying to achieve
 
 
   P = set_rpm_encoder - rpm_encoder;    // current error of rpm
-  // adding dt for precise working even if our loop slows for whatever reason
-  I = constrain(I + P * Ki * dt, -max_I, max_I);  // summation of the error of rpm
-  D = Kd * (P - prev_P) / dt;                     // difference between current and previous error
+  I = constrain(I + (P * Ki * dt), -max_I, max_I);  // summation of the error of rpm
 
-  pid_throttle = P * Kp + I + D;
+  // Filtering noise from D term
+  float alpha = 0.1;
+  float P_filtered = alpha * P + (1-alpha) * prev_P_filtered;
+  D = Kd * (P_filtered - prev_P_filtered) / dt;                     // difference between current and previous error
+
+  pid_throttle = P*Kp + I + (long)D;
 
   throttle_command = constrain(esc_default + pid_throttle, esc_full_reverse, esc_full_forward);  // Keep it in range of the ESC
 
-  prev_P = P;  // grab error for next time through
-
-  last_PID = millis();
+  // prev_P = P;  // grab error for next time through
+  prev_P_filtered = P_filtered;
 
   return throttle_command;
 }
@@ -67,7 +68,6 @@ void stop_no_encoder() {
       lcd.print(F("No encoder"));
       lcd.setCursor(0, 1);
       lcd.print(F("Check Wiring"));
-      
-      delay(500); 
+      delay(500);
   }
 }

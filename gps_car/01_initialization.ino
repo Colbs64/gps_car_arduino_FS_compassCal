@@ -159,7 +159,8 @@ int rpm_encoder, rpm_wheel;
 int set_rpm_encoder;
 int pid_command = esc_command;
 int steer_command = servo_command;
-long P, I, D;
+long P, I;
+float D;
 
 byte Sw_count = 0;
 int Sw_timer = 0;
