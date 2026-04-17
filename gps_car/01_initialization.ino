@@ -77,7 +77,7 @@ byte num_LCD_screens = 9;
 int neo_delay = 100;
 unsigned long neo_time = 0;
 
-byte disp_freq = 2;  // in hz
+byte disp_freq = 20;  // in hz
 int disp_delay = 1000 / disp_freq;
 unsigned long disp_time = 0;
 
@@ -145,11 +145,13 @@ int esc_full_reverse = 1111;  // 20;
 int esc_stop = esc_default;
 
 // PID Controller Stuff...
-int pid_freq = 100;  // in hz
+int pid_freq = 20;  // in hz
 long pid_delay = 1000 / pid_freq;
 unsigned long pid_time = 0;
 
-bool pid_trigger = 0;         // Pick between hard coded and pid
+
+
+bool pid_trigger = 1;         // Pick between hard coded and pid
 volatile int hall_count = 0;  // count for number of times isr_hall() has been tripped in a cycle
 float target_speed, rpm_speed;
 // float rpm = 0;
@@ -158,6 +160,25 @@ int set_rpm_encoder;
 int pid_command = esc_command;
 int steer_command = servo_command;
 long P, I, D;
+
+byte Sw_count = 0;
+int Sw_timer = 0;
+byte esc_start = 0;
+byte Sw_read = 0;
+byte Sw_state = 0;
+int Sw_delay = 500;
+
+volatile float gain = 0;
+char *gain_string[] = { "Kp", "Ki", "Kd" };
+volatile float Kp = 1.0;
+volatile float Ki = 0.0;
+volatile float Kd = 0.0;
+
+//=============== countdown for no encoder ==============//
+// -C
+//===========================================================//
+unsigned long no_encoder_countdown;
+bool timer_start = false;
 
 
 //=============== Different cases in void loop ==============//
@@ -173,21 +194,6 @@ enum Car_state {
   STATE_NO_RPM_READING
 };
 Car_state currentState;
-
-// //============= different LCD Screens ============//
-// enum lcd_screen {
-//     Title_Screen,
-//     Main_Screen,
-//     Position_Screen,
-//     Radio_Screen,
-//     Environment_Screen,
-//     Battery_Screen,
-//     Object_Avoid_Screen,
-//     Compass_Screen,
-//     PID_Screen
-//     };
-
-// lcd_screen LCD_screen = Title_Screen;
 
 
 //============== Compass offsets =========//

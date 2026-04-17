@@ -18,47 +18,50 @@ void disp_lcd_info() {
   //   LCD_screen = num_LCD_screens;
   // }
 
+
   if (LCD_screen_old != LCD_screen)  // if screen changes, clear old screen
   {
     lcd.clear();
     LCD_screen_old = LCD_screen;
   }
 
-  switch (LCD_screen) {
-    case 1:  // Title screen
-      Title_Screen();
-      break;
-    case 2:  // Main Screen
-      Main_Screen();
-      break;
-    case 3:  // Position Information
-      Position_Screen();
-      break;
-    case 4:  // Radio Information
-      Radio_Screen();
-      break;
-    case 5:  // Environmental Information
-      Environment_Screen();
-      break;
-    case 6:  // Battery Information
-      Battery_Screen();
-      break;
-    case 7:  // Battery Information
-      Object_Avoid_Screen();
-      break;
-    case 8:
-      Compass_Screen();
-      break;
-    case 9:
-      PID_Screen();
-      break;
-    default:
-      lcd.setCursor(0, 1);
-      lcd.print(F("**Undefined Screen**"));
-      lcd.setCursor(5, 2);
-      lcd.print(LCD_screen);
-      break;
-  }
+  // switch (LCD_screen) {
+  //   case 1:  // Title screen
+  //     Title_Screen();
+  //     break;
+  //   case 2:  // Main Screen
+  //     Main_Screen();
+  //     break;
+  //   case 3:  // Position Information
+  //     Position_Screen();
+  //     break;
+  //   case 4:  // Radio Information
+  //     Radio_Screen();
+  //     break;
+  //   case 5:  // Environmental Information
+  //     Environment_Screen();
+  //     break;
+  //   case 6:  // Battery Information
+  //     Battery_Screen();
+  //     break;
+  //   case 7:  // Battery Information
+  //     Object_Avoid_Screen();
+  //     break;
+  //   case 8:
+  //     Compass_Screen();
+  //     break;
+  //   case 9:
+  //     PID_Screen();
+  //     break;
+  //   default:
+  //     lcd.setCursor(0, 1);
+  //     lcd.print(F("**Undefined Screen**"));
+  //     lcd.setCursor(5, 2);
+  //     lcd.print(LCD_screen);
+  //     break;
+  // }
+
+  pid_Screen();
 }
 
 
@@ -66,6 +69,57 @@ void disp_lcd_info() {
 // ************************   "******"_SCREEN   ************************//
 
 // Specific Screen layouts
+
+void pid_Screen() {  // Radio Information
+  //   01234567890123456789
+  //0     Servo/ESC Info
+  //1  ESC Cmd: ###
+  //2  Steer Cmd: ###
+  //3  Heading Error:  ###
+  // lcd.setCursor(0, 0);
+  // lcd.print(F("   Servo/ESC Info   "));
+  lcd.setCursor(0, 0);
+  lcd.print(F("Set       Act       "));
+  lcd.setCursor(4,0);
+  lcd.print(set_rpm_encoder / 2.6); // This displays our desired wheel speed
+  lcd.setCursor(13,0);
+  lcd.print(rpm_wheel); // This displays our current wheel speed
+  lcd.setCursor(0, 1);
+
+  lcd.print(F("P:        Kp:        "));
+  lcd.setCursor(9,Sw_count+1);
+  lcd.print("*");
+  lcd.setCursor(3, 1);
+  lcd.print(P);
+  lcd.setCursor(13, 1);
+  lcd.print(Kp);
+  lcd.setCursor(0, 2);
+
+  lcd.print(F("I:        Ki:       "));
+  lcd.setCursor(9,Sw_count+1);
+  lcd.print("*");
+  lcd.setCursor(3, 2);
+  lcd.print(I);
+  lcd.setCursor(13, 2);
+  lcd.print(Ki);
+  // lcd.print(deltaT);
+
+  lcd.setCursor(0, 3);
+  lcd.print(F("D:        Kd:       "));
+  lcd.setCursor(9,Sw_count+1);
+  lcd.print("*");
+  lcd.setCursor(3, 3);
+  lcd.print(D);
+  lcd.setCursor(13,3);
+  lcd.print(Kd);
+  // lcd.print(delta_t_rpm_call);
+
+  lcd.setCursor(9,Sw_count+1);
+  lcd.print("*");
+}
+
+
+
 
 void Title_Screen() {  // Title screen
   //   01234567890123456789
@@ -320,40 +374,40 @@ void Compass_Screen() {
   }
 }
 
-void PID_Screen() {  // PID Information
-  //   01234567890123456789
-  //0  RPM:  #### / ####
-  //1  SPEED: #.## / #.##
-  //2  ESC: ####  P: #####
-  //3  I: #####   D: #####
-  lcd.setCursor(0, 0);
-  lcd.print(F("RPM:                "));
-  lcd.setCursor(6, 0);
-  lcd.print(set_rpm_encoder);
-  lcd.print(F(" / "));
-  lcd.print(rpm_encoder);
+// void PID_Screen() {  // PID Information
+//   //   01234567890123456789
+//   //0  RPM:  #### / ####
+//   //1  SPEED: #.## / #.##
+//   //2  ESC: ####  P: #####
+//   //3  I: #####   D: #####
+//   lcd.setCursor(0, 0);
+//   lcd.print(F("RPM:                "));
+//   lcd.setCursor(6, 0);
+//   lcd.print(set_rpm);
+//   lcd.print(F(" / "));
+//   lcd.print(rpm);
 
-  lcd.setCursor(0, 1);
-  lcd.print(F("SPEED:              "));
-  lcd.setCursor(7, 1);
-  lcd.print(target_speed);
-  lcd.print(F(" / "));
-  lcd.print(rpm_speed);
+//   lcd.setCursor(0, 1);
+//   lcd.print(F("SPEED:              "));
+//   lcd.setCursor(7, 1);
+//   lcd.print(target_speed);
+//   lcd.print(F(" / "));
+//   lcd.print(rpm_speed);
 
-  lcd.setCursor(0, 2);
-  lcd.print(F("ESC:       P:       "));
-  lcd.setCursor(5, 2);
-  lcd.print(esc_command);
-  lcd.setCursor(14, 2);
-  lcd.print(P);
+//   lcd.setCursor(0, 2);
+//   lcd.print(F("ESC:       P:       "));
+//   lcd.setCursor(5, 2);
+//   lcd.print(esc_command);
+//   lcd.setCursor(14, 2);
+//   lcd.print(P);
 
-  lcd.setCursor(0, 3);
-  lcd.print(F("I:         D:       "));
-  lcd.setCursor(3, 3);
-  lcd.print(I);
-  lcd.setCursor(14, 3);
-  lcd.print(D);
-}
+//   lcd.setCursor(0, 3);
+//   lcd.print(F("I:         D:       "));
+//   lcd.setCursor(3, 3);
+//   lcd.print(I);
+//   lcd.setCursor(14, 3);
+//   lcd.print(D);
+// }
 
 
 void blink_acquiring() {

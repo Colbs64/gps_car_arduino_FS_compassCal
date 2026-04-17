@@ -18,7 +18,7 @@ void calc_batt_voltage() {
   float tot_batt_scale = 1.01;  // Emperically measured value
   analogRead(batt_volt_pin);    // quick "primer" read to get it moving since we have extremely high resistors (see chatGPT)
   float tmp1 = analogRead(batt_volt_pin) * 3.3 / 1024.0;
-  
+
   // simple low-pass filter - simply combine current reading with previous reading
   float alpha = 0.9;
   volts_total = alpha * volts_total + (1 - alpha) * tmp1 * (R1 + R2) / R2 * tot_batt_scale;
@@ -31,19 +31,45 @@ void calc_batt_voltage() {
 
 
 
-// ************************   CALC_RPM   ************************//
+// ************************   CALC_MAG_RPM   ************************//
 
-// Calculates rpm of encoder AND wheel
-void calc_rpm() {
+// Calculates rpm of magnet wheel
+// int calc_mag_rpm() {
+//   static unsigned long last_micros_rpm = 0;
+//   unsigned long micros_now = micros();
+//   long deltat = micros_now - last_micros_rpm;
+//   // rpm = 6.0E7 * hall_count / (micros_now - last_micros_rpm) / 6.0;
+//   rpm = 1.0E7 * hall_count / deltat / 2.6;  // The 2.6 is to take it from teh encoder to the wheel rpm
+//   // 6 reads\revolution, measured in micro-seconds...
+//   hall_count = 0;
+//   last_micros_rpm = micros_now;
+//   return rpm;
+// }  //End of calc_mag_rpm
+
+
+// Calculates rpm of our motor pre-gear box
+int calc_mag_rpm() {
   static unsigned long last_micros_rpm = 0;
   unsigned long micros_now = micros();
-  // rpm_encoder = hall_count / 6 (to revolutions) / delta_t (in micro-seconds) * 1E6 (to seconds) * 60 (to minutes) -> rotations/minute (RPM)
-  rpm_encoder = 1.0E7 * hall_count / (micros_now - last_micros_rpm);
-  rpm_wheel = rpm_encoder / 2.6;  // gearbox has 2.6:1 reduction from slipper (encoder) and wheel
+  long deltaT = micros_now - last_micros_rpm;
+// qj -   int rpm_magnet = 6.0E7 * hall_count / deltaT / 6.0;
+// C -   Just to clarify, The reason that we don't divide 6.0 or do 6E7 for the direct conversion from microseconds to
+// mins is because
+  int rpm = 1.0E7 * hall_count / deltaT;
+
+  // LOW PASS FILTER
+  float alpha = 0.9; // filter setting, trusting 90% of what our rpm is reading
+  float rpm_filtered = rpm_filtered + alpha * (rpm - rpm_filtered);
+  
   // 6 reads\revolution, measured in micro-seconds...
+  // float gear_ratio = 2.6;
+  // int rpm_wheel = rpm_magnet / gear_ratio;
+  // hall_count_max = max(hall_count_max, hall_count);
   hall_count = 0;
   last_micros_rpm = micros_now;
-}  //End of calc_rpm
+  return rpm_filtered;
+}  //End of calc_mag_rpm
+
 
 
 
