@@ -149,7 +149,7 @@ int pid_freq = 100;  // in hz
 long pid_delay = 1000 / pid_freq;
 unsigned long pid_time = 0;
 
-bool pid_flag = 1;         // Pick between hard coded and pid
+bool pid_flag = 0;         // Pick between hard coded and pid
 volatile int hall_count = 0;  // count for number of times isr_hall() has been tripped in a cycle
 float target_speed, rpm_speed;
 // float rpm = 0;

@@ -64,10 +64,10 @@ float calc_avoidance_angle() {
   // if something is in front, determine angle to avoid object, and decay at an appropriate rate to avoid it
   static int avoid_dir = 1;
   static bool set_dir_flag = 0;
-  if (dist_lidar > 10 || dist_lidar < 3)  // there is nothing in front, so either decay angle, or just do nothing
+  if (dist_lidar > 20 || dist_lidar < 3)  // there is nothing in front, so either decay angle, or just do nothing
   {
     // low pass filter - slowly decay it over time.  alpha determined by experiment, but is up for debate
-    float alpha = 0.008;
+    float alpha = 0.0065;
     avoid_heading = (1 - alpha) * avoid_heading;
     if (abs(avoid_heading) < 3)  //
     {
@@ -82,7 +82,7 @@ float calc_avoidance_angle() {
   else  // Something is in the way - determine angle to drive around
   {
     set_dir_flag = 1;
-    avoid_heading = avoid_dir * 90 * exp(-0.145 * dist_lidar);  // curve fit reasonable data to find equation
+    avoid_heading = avoid_dir * 90 * exp(-0.15 * dist_lidar);  // curve fit reasonable data to find equation
   }
   return avoid_heading;
 }
