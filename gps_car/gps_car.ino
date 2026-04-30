@@ -36,10 +36,15 @@ byte neo_blue = 50;
 // const float target_lats[num_gps_tgts]  = {  40.645076,   40.645029,   40.645109,   40.645029,   40.645109,   40.645076};
 // const float target_longs[num_gps_tgts] = {-111.878806, -111.878326, -111.879036, -111.878326, -111.879036, -111.878806};
 
-const char course_name[] = "Alder-PlazaAvoidTest";
-const byte num_gps_tgts = 7;   // make sure to update this!
-const float target_lats[num_gps_tgts]  = {40.671732,      40.671564,   40.671732,     40.671564,   40.671732,     40.671564,    40.671732};
-const float target_longs[num_gps_tgts] = {-111.944580,  -111.944623,  -111.944580,  -111.944623,  -111.944580,  -111.944623,  -111.944580};
+// const char course_name[] = "Alder-PlazaAvoidTest";
+// const byte num_gps_tgts = 7;   // make sure to update this!
+// const float target_lats[num_gps_tgts]  = {40.671732,      40.671564,   40.671732,     40.671564,   40.671732,     40.671564,    40.671732};
+// const float target_longs[num_gps_tgts] = {-111.944580,  -111.944623,  -111.944580,  -111.944623,  -111.944580,  -111.944623,  -111.944580};
+
+const char course_name[] = " RC Avoidance Test  ";
+const byte num_gps_tgts = 13;   // make sure to update this!
+const float target_lats[num_gps_tgts]  = {  40.671505,   40.671757,   40.671505,   40.671757,   40.671505,   40.671757,   40.671505,   40.671757,   40.671505,   40.671757,   40.671505,   40.671757,   40.671505};
+const float target_longs[num_gps_tgts] = {-111.944992, -111.944987, -111.944992, -111.944987, -111.944992, -111.944987, -111.944992, -111.944987, -111.944992, -111.944987, -111.944992, -111.944987, -111.944992};
 
 
 

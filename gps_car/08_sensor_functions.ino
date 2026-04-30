@@ -64,7 +64,7 @@ float calc_avoidance_angle() {
   // if something is in front, determine angle to avoid object, and decay at an appropriate rate to avoid it
   static int avoid_dir = 1;
   static bool set_dir_flag = 0;
-  if (dist_lidar > 20 || dist_lidar < 3)  // there is nothing in front, so either decay angle, or just do nothing
+  if (dist_lidar > 15 || dist_lidar < 3)  // there is nothing in front, so either decay angle, or just do nothing
   {
     // low pass filter - slowly decay it over time.  alpha determined by experiment, but is up for debate
     float alpha = 0.0065;
