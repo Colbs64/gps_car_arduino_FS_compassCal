@@ -121,3 +121,43 @@ void set_steering(int range) {
   }
   lcd.clear();
 }  //End of set_steering
+
+
+// This function calculates X and Y while accounting for any tilt.
+void calc_heading_tilt(float* Xh, float* Yh) {
+  float gx, gy, gz; // Gyroscope directions
+  float ax, ay, az; // Acceleration directions
+  float cx, cy, cz; // compass directions
+
+  // x and y are swapped here because of the way our Arduino is mounted.
+  // Since it's sideways, our x and y axis are switched.
+  if (IMU.gyroscopeAvailable()) {
+    IMU.readGyroscope(gy, gx, gz);
+  }
+  if (IMU.accelerationAvailable()) {
+    IMU.readAcceleration(ay, ax, az);
+  }
+
+  // reading our compass data
+  if (hmc_flag) {
+    sensors_event_t event;
+    compass_HMC.getEvent(&event);
+    cx = (event.magnetic.x - offsetX) * scaleX;
+    cy = (event.magnetic.y - offsetY) * scaleY;
+    cz = (event.magnetic.z - offsetZ) * scaleZ;
+  } else {
+    compass_QMC.read();
+    cx = compass_QMC.getX();
+    cy = compass_QMC.getY();
+    cz = compass_QMC.getZ();
+  }
+
+  float roll = atan2(ay, az);
+  float pitch = atan2(-ax, sqrt(ay * ay + az * az));
+
+  float cr = cos(roll), sr = sin(roll);
+  float cp = cos(pitch), sp = sin(pitch);
+
+  *Xh = cx * cp + cy * sr - cz * cr * sr;
+  *Yh = cy * cr + cz * sr;
+}

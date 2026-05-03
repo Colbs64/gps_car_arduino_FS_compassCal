@@ -8,14 +8,9 @@
 
 void get_compass_data(float target_lat, float target_lon) {
   int compass_heading;
-  if (hmc_flag) {
-    sensors_event_t event;
-    compass_HMC.getEvent(&event);
-    compass_heading = atan2((event.magnetic.y - offsetY) * scaleY, (event.magnetic.x - offsetX) * scaleX) * 180.0 / M_PI;  // - compass_offset;
-  } else {
-    compass_QMC.read();
-    compass_heading = compass_QMC.getAzimuth();
-  }
+  float Xh, Yh;
+  calc_heading_tilt(&Xh, &Yh);
+  compass_heading = atan2(Xh, Yh) * 180 / M_PI;
   compass_heading = compass_heading - compass_offset;
   gps_heading = atan2(target_lon - gps.location.lng(), target_lat - gps.location.lat()) * 180.0 / M_PI;
 

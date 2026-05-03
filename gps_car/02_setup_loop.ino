@@ -153,6 +153,11 @@ void setup() {
 
   retrieve_Compass_Data();
 
+  if (!IMU.begin()) {
+    Serial.println("IMU failed to start");
+    while(1);
+  }
+  Serial.println("IMU initialized");
 
 
   // calibrate_compass();

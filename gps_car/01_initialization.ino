@@ -256,3 +256,6 @@ QMC5883LCompass compass_QMC;
 #include <TFLI2C.h>            // TFLuna-I2C Library v.0.1.1
 TFLI2C luna;                   // create object for distance sensor, willing to rename
 #define lidar_adr TFL_DEF_ADR  // set address for distance sensor
+
+// Setup IMU
+#include <Arduino_LSM6DSOX.h>
