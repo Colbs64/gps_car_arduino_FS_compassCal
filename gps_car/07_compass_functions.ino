@@ -157,8 +157,8 @@ void calibrate_compass() {
 // This also retrieves the Scales data, stored in the same way as the offsets
 //
 void retrieve_Compass_Data() {
-  char offset_temp[25];
-  char scales_temp[25];
+  char offset_temp[32];
+  char scales_temp[32];
 
   // Recieving offsets
   int correct = FS_readData(compass_calibration, offset_temp, sizeof(offset_temp));

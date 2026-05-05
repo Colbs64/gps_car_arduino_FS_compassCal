@@ -125,6 +125,13 @@ void set_steering(int range) {
 
 // This function calculates X and Y while accounting for any tilt.
 void calc_heading_tilt(float* Xh, float* Yh) {
+  unsigned long time = millis();
+
+  static float gyroPitch = 0.0;
+  static float gyroRoll = 0.0;
+  static float biasX = 0.0;
+  static float biasY = 0.0;
+
   float gx_raw, gy_raw, gz_raw; // Gyroscope directions
   float ax_raw, ay_raw, az_raw; // Acceleration directions
 
@@ -161,12 +168,23 @@ void calc_heading_tilt(float* Xh, float* Yh) {
     cz = compass_QMC.getZ();
   }
 
-  float roll = atan2(ay, az);
-  float pitch = atan2(-ax, sqrt(ay * ay + az * az));
+  // Acceleration values:
+  float accelRoll = atan2(ay, az);
+  float accelPitch = atan2(-ax, sqrt(ay * ay + az * az));
+  float dt = (time - last_tilt) / 10E-3;
+  // Gyroscope values:
+  gyroRoll += (gx - biasX) * dt;
+  gyroPitch += (gy - biasY) * dt;
+
+  roll = 0.98 * gyroRoll + 0.02 * accelRoll;
+  pitch = 0.98 * gyroPitch + 0.02 * accelPitch;
 
   float cr = cos(roll), sr = sin(roll);
   float cp = cos(pitch), sp = sin(pitch);
 
+
+
   *Xh = cx * cp + cy * sr - cz * cr * sr;
   *Yh = cy * cr + cz * sr;
+  static unsigned long last_tilt = time;
 }
