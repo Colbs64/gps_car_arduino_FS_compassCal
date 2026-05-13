@@ -50,6 +50,9 @@ void disp_lcd_info() {
       Compass_Screen();
       break;
     case 9:
+      IMU_screen();
+      break;
+    case 10:
       PID_Screen();
       break;
     default:
@@ -317,6 +320,47 @@ void Compass_Screen() {
     lcd.setCursor(0, 3);
     lcd.print(F("offsetZ: "));
     lcd.print(offsetZ);
+  }
+}
+
+void IMU_screen() {
+  // 0  IMU calibrate
+  // 1 ax: {value} gx: {value}
+  // 1 ay: {value} gy: {value}
+  // 3 az: {value} gz: {value}
+  if (digitalRead(Sw) == LOW) {
+    calibrate_IMU();
+  }
+  if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable()) {
+    float ax_raw, ay_raw, az_raw;
+    float gx_raw, ay_raw, az_raw;
+    IMU.readGyroscope(gx_raw, gy_raw, gz_raw);
+    IMU.readAccelerometer(ax_raw, ay_raw, az_raw);
+    float ax = ay_raw - accelBiasY;
+    float ay = -(ax_raw - accelBiasX);
+    float az = az_raw - accelBiasZ;
+
+    float gx = gx_raw - gyroBiasX;
+    float gy = gy_raw - gyroBiasY;
+    float gz = gz_raw - gyroBiasZ;
+
+    lcd.setCursor(0, 0);
+    lcd.print(F("IMU data"));
+    lcd.setCursor(0, 1);
+    lcd.print(F("ax: "));
+    lcd.print(ax);
+    lcd.print(F("gx: "));
+    lcd.print(gx);
+    lcd.setCursor(0, 2);
+    lcd.print(F("ay: "));
+    lcd.print(ay);
+    lcd.print(F("gy: "));
+    lcd.print(gy);
+    lcd.setCursor(0, 3);
+    lcd.print(F("az: "));
+    lcd.print(az);
+    lcd.print(F("gz: "));
+    lcd.print(gz);
   }
 }
 

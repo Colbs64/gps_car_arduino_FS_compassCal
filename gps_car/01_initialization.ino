@@ -213,6 +213,8 @@ bool FS_init = false;
 LittleFS_MBED *myFS;
 char compass_calibration[] = MBED_LITTLEFS_FILE_PREFIX "/compass.txt";
 char compass_scales[] = MBED_LITTLEFS_FILE_PREFIX "/compass_scales.txt";
+char gyroBias[] = MBED_LITTLEFS_FILE_PREFIX "/gyro_bias.txt";
+char accelBias[] = MBED_LITTLEFS_FILE_PREFIX "/accel_bias.txt";
 //=============== Initialize Libraries ================//
 // Include Libraries, Setup objects, modules, etc.
 //=====================================================//
@@ -257,5 +259,15 @@ QMC5883LCompass compass_QMC;
 TFLI2C luna;                   // create object for distance sensor, willing to rename
 #define lidar_adr TFL_DEF_ADR  // set address for distance sensor
 
-// Setup IMU
+// Setup IMU  - C
 #include <Arduino_LSM6DSOX.h>
+int num_samples = 1000;
+float gyroBiasX = 0.0;
+float gyroBiasY = 0.0;
+float gyroBiasZ = 0.0;
+float accelBiasX = 0.0;
+float accelBiasY = 0.0;
+float accelBiasZ = 0.0;
+
+float pitch;
+float roll;

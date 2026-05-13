@@ -146,38 +146,36 @@ void calc_heading_tilt(float* Xh, float* Yh) {
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(ax_raw, ay_raw, az_raw);
   }
-  float ax = ay_raw;
-  float ay = -ax_raw;
-  float az = az_raw;
+  float ax = ay_raw - accelBiasY;
+  float ay = -(ax_raw - accelBiasX);
+  float az = az_raw - accelBiasZ;
 
-  float gx = gy_raw;
-  float gy = -gx_raw;
-  float gz = gz_raw;
+  float gx = gx_raw - gyroBiasX;
+  float gy = gy_raw - gyroBiasY;
+  float gz = gz_raw - gyroBiasZ;
 
   // reading our compass data
   if (hmc_flag) {
     sensors_event_t event;
     compass_HMC.getEvent(&event);
-    cx = (event.magnetic.x - offsetX) * scaleX;
-    cy = (event.magnetic.y - offsetY) * scaleY;
+    cx = -(event.magnetic.y - offsetY) * scaleY;
+    cy = (event.magnetic.x - offsetX) * scaleX;
     cz = (event.magnetic.z - offsetZ) * scaleZ;
   } else {
     compass_QMC.read();
-    cx = compass_QMC.getX();
-    cy = compass_QMC.getY();
-    cz = compass_QMC.getZ();
+    // X and Y are flipped to keep the Direction of the compass consistent with the IMU
+    cx = -(compass_QMC.getY() - offsetY) * scaleY;
+    cy = (compass_QMC.getX() - offsetX) * scaleX;
+    cz = (compass_QMC.getZ() - offsetZ) * scaleZ;
   }
 
   // Acceleration values:
   float accelRoll = atan2(ay, az);
   float accelPitch = atan2(-ax, sqrt(ay * ay + az * az));
-  float dt = (time - last_tilt) / 10E-3;
-  // Gyroscope values:
-  gyroRoll += (gx - biasX) * dt;
-  gyroPitch += (gy - biasY) * dt;
+  float dt = (time - last_tilt) / 10E3;
 
-  roll = 0.98 * gyroRoll + 0.02 * accelRoll;
-  pitch = 0.98 * gyroPitch + 0.02 * accelPitch;
+  roll = 0.8 * (roll + gx * dt) + 0.2 * (accelRoll);
+  pitch = 0.8 * (pitch + gy * dt) + 0.2 * (accelPitch);
 
   float cr = cos(roll), sr = sin(roll);
   float cp = cos(pitch), sp = sin(pitch);
@@ -187,4 +185,68 @@ void calc_heading_tilt(float* Xh, float* Yh) {
   *Xh = cx * cp + cy * sr - cz * cr * sr;
   *Yh = cy * cr + cz * sr;
   static unsigned long last_tilt = time;
+}
+
+
+void calibrate_IMU() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Keep car on");
+  lcd.setCursor(0, 1);
+  lcd.print("flat suraface");
+  float gx_raw, gy_raw, gz_raw;
+
+  // give time to put on flat surface
+  delay(2000);
+
+  // Gyro calibration
+  if(IMU.gyroscopeAvailable) {
+    double sumX, sumY, sumZ;
+
+    for(int i=0; i<num_samples; i++) {
+      IMU.readGyroscope(gx_raw, gy_raw, gz_raw);
+      sumX += gx_raw;
+      sumY += gy_raw;
+      sumZ += gz_raw;
+
+      delay(12); // IMU runs at about 105hz
+    }
+    gyroBiasX = sumX / num_samples;
+    gyroBiasY = sumX / num_samples;
+    gyroBiasZ = sumX / num_samples;
+
+
+    char finalBuffer[32];
+    snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f:%.2f", gyroBiasX, gyroBiasY, gyroBiasZ);
+
+    FS_writeData(gyroBias, finalBuffer, strlen(finalBuffer));
+  }
+
+
+  if(IMU.accelerationAvailable) {
+   double sumX, sumY, sumZ;
+   float ax_raw, ay_raw, az_raw;
+
+   for(int i=0; i<num_samples; i++) {
+     IMU.readAcceleration(ax_raw, ay_raw, az_raw);
+     sumX += ax_raw;
+     sumY += ax_raw;
+     sumZ += az_raw;
+
+     delay(12);
+   }
+   accelBiasX = sumX / num_samples;
+   accelBiasY = sumY / num_samples;
+   accelBiasZ = sumZ / num_samples - 1;
+
+   char finalBuffer[32];
+
+   snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f:%.2f", accelBiasX, accelBiasY, accelBiasZ);
+
+   FS_writeData(accelBias, finalBuffer, strlen(finalBuffer));
+  }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("calibration complete!");
 }
