@@ -262,9 +262,11 @@ TFLI2C luna;                   // create object for distance sensor, willing to 
 // Setup IMU  - C
 #include <Arduino_LSM6DSOX.h>
 int num_samples = 1000;
+
 float gyroBiasX = 0.0;
 float gyroBiasY = 0.0;
 float gyroBiasZ = 0.0;
+
 float accelBiasX = 0.0;
 float accelBiasY = 0.0;
 float accelBiasZ = 0.0;

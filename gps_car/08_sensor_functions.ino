@@ -150,9 +150,9 @@ void calc_heading_tilt(float* Xh, float* Yh) {
   float ay = -(ax_raw - accelBiasX);
   float az = az_raw - accelBiasZ;
 
-  float gx = gx_raw - gyroBiasX;
-  float gy = gy_raw - gyroBiasY;
-  float gz = gz_raw - gyroBiasZ;
+  float gx = (gx_raw - gyroBiasX) * (M_PI/180);
+  float gy = (gy_raw - gyroBiasY) * (M_PI/180);
+  float gz = (gz_raw - gyroBiasZ) * (M_PI/180);
 
   // reading our compass data
   if (hmc_flag) {
@@ -171,7 +171,7 @@ void calc_heading_tilt(float* Xh, float* Yh) {
 
   // Acceleration values:
   float accelRoll = atan2(ay, az);
-  float accelPitch = atan2(-ax, sqrt(ay * ay + az * az));
+  float accelPitch = atan2(ax, sqrt(ay * ay + az * az)); // pitch is + when nose is up
   float dt = (time - last_tilt) / 10E3;
 
   roll = 0.8 * (roll + gx * dt) + 0.2 * (accelRoll);
@@ -188,6 +188,9 @@ void calc_heading_tilt(float* Xh, float* Yh) {
 }
 
 
+// This calibrates both the Accelerometer and the Gyroscope.
+// It uses a simple algorithm that gets an average from a number of samples and then
+// we subtract that from our values read to get our correct values.
 void calibrate_IMU() {
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -222,7 +225,7 @@ void calibrate_IMU() {
     FS_writeData(gyroBias, finalBuffer, strlen(finalBuffer));
   }
 
-
+  // Accel calibration
   if(IMU.accelerationAvailable) {
    double sumX, sumY, sumZ;
    float ax_raw, ay_raw, az_raw;

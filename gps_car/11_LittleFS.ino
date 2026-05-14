@@ -74,3 +74,76 @@ void FS_writeData(const char * path, const char * n, size_t nSize) {
 
   fclose(file);
 }
+// ********* Retrieving all calibration data ******* //
+
+void retrieve_calibration_data() {
+  char compass_offsets[32];
+  char compass_scales[32];
+  char accel_biases[32];
+  char gyro_biases[32];
+
+
+  // Recieving offsets
+  int compass_offsets_correct = FS_readData(compass_calibration, compass_offsets, sizeof(offset_temp));
+  if (compass_offsets_correct) {
+    char* xValue = strtok(compass_offsets, ":");
+    char* yValue = strtok(NULL, ":");
+    char* zValue = strtok(NULL, ":");
+
+    if (xValue != NULL && yValue != NULL && zValue != NULL) {
+      offsetX = atof(xValue);
+      offsetY = atof(yValue);
+      offsetZ = atof(zValue);
+    } else {
+      Serial.println("compass_offsets: data incorrect format");
+    }
+
+  }
+
+  // Recieving scales
+  int scales_correct = FS_readData(compass_scales, compass_scales, sizeof(compass_scales));
+  if (scales_correct) {
+    char* xScale = strtok(compass_scales, ":");
+    char* yScale = strtok(NULL, ":");
+    char* zScale = strtok(NULL, ":");
+
+    if(xScale != NULL && yScale != NULL && zScale != NULL) {
+      scaleX = atof(xScale);
+      scaleY = atof(yScale);
+      scaleZ = atof(zScale);
+    } else {
+      Serial.println("compass_scales: data incorrect format");
+    }
+  }
+
+  int accel_offsets_correct = FS_readData(accelBias, accel_biases, sizeof(accel_biases));
+  if (accel_offsets_correct) {
+    char* xBias = strtok(accel_biases, ":");
+    char* yBias = strtok(NULL, ":");
+    char* zBias = strtok(NULL, ":");
+
+    if(xScale != NULL && yScale != NULL && zScale != NULL) {
+      accelBiasX = atof(xBias);
+      accelBiasY = atof(yBias);
+      accelBiasZ = atof(zBias);
+    } else {
+      Serial.println("accel_biases: data incorrect format");
+    }
+  }
+
+  int gyro_offsets_correct = FS_readData(gyroBias, gyro_biases, sizeof(gyro_biases));
+  if (gyro_offsets_correct) {
+    char* xBias = strtok(gyro_biases, ":");
+    char* yBias = strtok(NULL, ":");
+    char* zBias = strtok(NULL, ":");
+
+    if(xScale != NULL && yScale != NULL && zScale != NULL) {
+      gyroBiasX = atof(xBias);
+      gyroBiasY = atof(yBias);
+      gyroBiasZ = atof(zBias);
+    } else {
+      Serial.println("gyro_biases: data incorrect format");
+    }
+  }
+
+}
