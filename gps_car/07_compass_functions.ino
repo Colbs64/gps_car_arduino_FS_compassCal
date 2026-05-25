@@ -72,6 +72,7 @@ void stop_no_compass() {
 // Want the min/max x and y readings from the compass for calibration
 
 void calibrate_compass() {
+  const unsigned long sample_Interval = 5;
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(F("Rotate car all dir."));
@@ -90,18 +91,22 @@ void calibrate_compass() {
 
 
       while (millis() - start_time < 20000) { // Spin car for 20 seconds so we can get the highest and lowest values
-        sensors_event_t event;
-        compass_HMC.getEvent(&event);
+        static unsigned long last_read = 0;
+        if (millis() - last_read >= sample_Interval) {
+          last_read = millis();
 
-        if (event.magnetic.x < xMin) xMin = event.magnetic.x;
-        if (event.magnetic.x > xMax) xMax = event.magnetic.x;
-        if (event.magnetic.y < yMin) yMin = event.magnetic.y;
-        if (event.magnetic.y > yMax) yMax = event.magnetic.y;
-        if (event.magnetic.z < zMin) zMin = event.magnetic.z;
-        if (event.magnetic.z > zMax) zMax = event.magnetic.z;
+          compass_HMC.getEvent(&event);
+          float rawX = event.magnetic.x;
+          float rawY = event.magnetic.y;
+          float rawZ = event.magnetic.z;
 
-
-        delay(10);
+          if (rawX < xMin) xMin = rawX;
+          if (rawX > xMax) xMax = rawX;
+          if (rawY < yMin) yMin = rawY;
+          if (rawY > yMax) yMax = rawY;
+          if (rawZ < zMin) zMin = rawZ;
+          if (rawZ > zMax) zMax = rawZ;
+        }
       }
       // Offset calculation
       offsetX = (xMax + xMin) / 2;
@@ -131,16 +136,21 @@ void calibrate_compass() {
       lcd.print(F("QMC"));
 
       while (millis() - start_time < 20000) {
-        compass_QMC.read();
+        static unsigned long last_read = 0;
+        if (millis() - last_read >= sample_Interval) {
+          last_read = millis();
+          compass_QMC.read();
+          float rawX = compass_QMC.getX;
+          float rawY = compass_QMC.getY;
+          float rawZ = compass_QMC.getZ;
 
-        if (compass_QMC.getX() < xMin) xMin = compass_QMC.getX();
-        if (compass_QMC.getX() > xMax) xMax = compass_QMC.getX();
-        if (compass_QMC.getY() < yMin) yMin = compass_QMC.getY();
-        if (compass_QMC.getY() > yMax) yMax = compass_QMC.getY();
-        if (compass_QMC.getZ() < zMin) zMin = compass_QMC.getZ();
-        if (compass_QMC.getZ() > zMax) zMax = compass_QMC.getZ();
-
-        delay(10);
+          if (rawX < xMin) xMin = rawX;
+          if (rawX > xMax) xMax = rawX;
+          if (rawY < yMin) yMin = rawY;
+          if (rawY > yMax) yMax = rawY;
+          if (rawZ < zMin) zMin = rawZ;
+          if (rawZ > zMax) zMax = rawZ;
+        }
       }
 
 
