@@ -109,14 +109,12 @@ void calibrate_compass() {
       offsetZ = (zMax + zMin) / 2;
 
       // Scales calculation
-      float DeltaX = (xMax - xMin) / 2;
-      float DeltaY = (yMax - yMin) / 2;
-      float DeltaZ = (zMax - zMin) / 2;
-
-      float AverageDelta = (DeltaX + DeltaY + DeltaZ) / 3;
-      scaleX = AverageDelta / DeltaX;
-      scaleY = AverageDelta / DeltaY;
-      scaleZ = AverageDelta / DeltaZ;
+      scaleX = 2.0/(xMax-xMin);
+      scaleY = 2.0/(yMax-yMin);
+      scaleZ = 2.0/(zMax-zMin);
+      // -C explaination: We're taking the size of our ellipse and dividing out of the ellipse. Then multiply by 2
+      // to get a range of -1 to 1 for our calibrated values instead of -0.5 to 0.5
+      // Full Equation: calibrated_data = 2*(reading/ellipse_length)
 
       char finalBuffer[32];
       char scalesBuffer[32];
@@ -134,7 +132,7 @@ void calibrate_compass() {
 
       while (millis() - start_time < 20000) {
         compass_QMC.read();
-        
+
         if (compass_QMC.getX() < xMin) xMin = compass_QMC.getX();
         if (compass_QMC.getX() > xMax) xMax = compass_QMC.getX();
         if (compass_QMC.getY() < yMin) yMin = compass_QMC.getY();
@@ -145,32 +143,16 @@ void calibrate_compass() {
         delay(10);
       }
 
-      
+
       // offset calculation
       offsetX = (xMax + xMin) / 2;
       offsetY = (yMax + yMin) / 2;
       offsetZ = (zMax + zMin) / 2;
 
       // Scales calculation
-      float DeltaX = (xMax - xMin) / 2;
-      float DeltaY = (yMax - yMin) / 2;
-      float DeltaZ = (zMax - zMin) / 2;
-
-      float AverageDelta = (DeltaX + DeltaY + DeltaZ) / 3;
-      scaleX = AverageDelta / DeltaX;
-      scaleY = AverageDelta / DeltaY;
-      scaleZ = AverageDelta / DeltaZ;
-
-      // This function does the same thing as the above statement
-      // compass_QMC.calibrate();
-
-      // offsetX = compass_QMC.getCalibrationOffset(0);
-      // offsetY = compass_QMC.getCalibrationOffset(1);
-      // offsetZ = compass_QMC.getCalibrationOffset(2);
-      // scaleX = compass_QMC.getCalibrationScale(0);
-      // scaleY = compass_QMC.getCalibrationScale(1);
-      // scaleZ = compass_QMC.getCalibrationScale(2);
-
+      scaleX = 2.0/(xMax-xMin);
+      scaleY = 2.0/(yMax-yMin);
+      scaleZ = 2.0/(zMax-zMin);
 
 
       char finalBuffer[32];
