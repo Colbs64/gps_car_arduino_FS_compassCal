@@ -14,7 +14,6 @@ void get_compass_data(float target_lat, float target_lon) {
     compass_heading = atan2((event.magnetic.y - offsetY) * scaleY, (event.magnetic.x - offsetX) * scaleX) * 180.0 / M_PI;  // - compass_offset;
   } else {
     compass_QMC.read();
-    // compass_heading = compass_QMC.getAzimuth();
     compass_heading = atan2((compass_QMC.getY() - offsetY) * scaleY, (compass_QMC.getX() - offsetX) * scaleX) * 180.0 / M_PI;
   }
   compass_heading = compass_heading - compass_offset;
@@ -76,29 +75,29 @@ void calibrate_compass() {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(F("Rotate car all dir."));
-      float xMin = 9999;
-      float zMin = 9999;
-      float yMin = 9999;
-      float yMax = -9999;
-      float xMax = -9999;
-      float zMax = -9999;
+      int xMin = 9999;
+      int zMin = 9999;
+      int yMin = 9999;
+      int yMax = -9999;
+      int xMax = -9999;
+      int zMax = -9999;
       unsigned long start_time = millis();
 
-    if (hmc_flag)  //
-    {
+      //
+    if (hmc_flag) {
       lcd.setCursor(0, 1);
       lcd.print(F("HMC"));
-
 
       while (millis() - start_time < 20000) { // Spin car for 20 seconds so we can get the highest and lowest values
         static unsigned long last_read = 0;
         if (millis() - last_read >= sample_Interval) {
           last_read = millis();
 
+          sensors_event_t event;
           compass_HMC.getEvent(&event);
-          float rawX = event.magnetic.x;
-          float rawY = event.magnetic.y;
-          float rawZ = event.magnetic.z;
+          int rawX = event.magnetic.x;
+          int rawY = event.magnetic.y;
+          int rawZ = event.magnetic.z;
 
           if (rawX < xMin) xMin = rawX;
           if (rawX > xMax) xMax = rawX;
@@ -120,15 +119,6 @@ void calibrate_compass() {
       // -C explaination: We're taking the size of our ellipse and dividing out of the ellipse. Then multiply by 2
       // to get a range of -1 to 1 for our calibrated values instead of -0.5 to 0.5
       // Full Equation: calibrated_data = 2*(reading/ellipse_length)
-
-      char finalBuffer[32];
-      char scalesBuffer[32];
-
-    snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f:%.2f", offsetX, offsetY, offsetZ);
-    snprintf(scalesBuffer, sizeof(scalesBuffer), "%.2f:%.2f:%.2f", scaleX, scaleY, scaleZ);
-      // writing the data that we just got
-    FS_writeData(compass_calibration, finalBuffer, strlen(finalBuffer));
-    FS_writeData(compass_scales, scalesBuffer, strlen(scalesBuffer));
       }     //
     else  //
     {
@@ -140,9 +130,9 @@ void calibrate_compass() {
         if (millis() - last_read >= sample_Interval) {
           last_read = millis();
           compass_QMC.read();
-          float rawX = compass_QMC.getX;
-          float rawY = compass_QMC.getY;
-          float rawZ = compass_QMC.getZ;
+          int rawX = compass_QMC.getX();
+          int rawY = compass_QMC.getY();
+          int rawZ = compass_QMC.getZ();
 
           if (rawX < xMin) xMin = rawX;
           if (rawX > xMax) xMax = rawX;
@@ -155,25 +145,26 @@ void calibrate_compass() {
 
 
       // offset calculation
-      offsetX = (xMax + xMin) / 2;
-      offsetY = (yMax + yMin) / 2;
-      offsetZ = (zMax + zMin) / 2;
+      offsetX = (xMax + xMin) / 2.0;
+      offsetY = (yMax + yMin) / 2.0;
+      offsetZ = (zMax + zMin) / 2.0;
 
       // Scales calculation
       scaleX = 2.0/(xMax-xMin);
       scaleY = 2.0/(yMax-yMin);
       scaleZ = 2.0/(zMax-zMin);
-
-
-      char finalBuffer[32];
-      char scalesBuffer[32];
-
-      snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f:%.2f", offsetX, offsetY, offsetZ);
-      snprintf(scalesBuffer, sizeof(scalesBuffer), "%.2f:%.2f:%.2f", scaleX, scaleY, scaleZ);
-        // writing the data that we just got
-      FS_writeData(compass_calibration, finalBuffer, strlen(finalBuffer));
-      FS_writeData(compass_scales, scalesBuffer, strlen(scalesBuffer));
     }
+
+    char finalBuffer[32];
+    char scalesBuffer[32];
+
+    snprintf(finalBuffer, sizeof(finalBuffer), "%.2f:%.2f:%.2f", offsetX, offsetY, offsetZ);
+    snprintf(scalesBuffer, sizeof(scalesBuffer), "%.2f:%.2f:%.2f", scaleX, scaleY, scaleZ);
+
+      // writing the data that we just got
+    FS_writeData(compass_calibration, finalBuffer, strlen(finalBuffer));
+    FS_writeData(compass_scales, scalesBuffer, strlen(scalesBuffer));
+
 }
 
 // ************************   RETRIEVE_COMPASS_DATA   ************************//
@@ -182,8 +173,8 @@ void calibrate_compass() {
 // This also retrieves the Scales data, stored in the same way as the offsets
 //
 void retrieve_Compass_Data() {
-  char offset_temp[25];
-  char scales_temp[25];
+  char offset_temp[32];
+  char scales_temp[32];
 
   // Recieving offsets
   int correct = FS_readData(compass_calibration, offset_temp, sizeof(offset_temp));
